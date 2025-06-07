@@ -1,0 +1,33 @@
+.clinic-card {
+    background: linear-gradient(135deg, #e6f7fa 0%, #ffffff 100%);
+}
+
+.clinic-table .ant-table-thead>tr>th {
+    background: #e6f7fa;
+    color: #1890ff;
+    font-weight: 600;
+}
+
+.clinic-table .ant-table-tbody>tr:hover>td {
+    background: #f0f4f8;
+    transition: background 0.3s ease;
+}
+
+.clinic-table .ant-table-tbody>tr>td {
+    color: #424242;
+}
+
+.ant-btn-primary {
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ant-form-item-label>label {
+    color: #1890ff;
+    font-weight: 500;
+}
