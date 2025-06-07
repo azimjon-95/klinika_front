@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import "./DoctorsSlite.css"; // Assuming the CSS file exists and styles the component
 import { FaUserDoctor } from "react-icons/fa6";
 import { LiaMoneyBillWaveSolid } from "react-icons/lia";
 import { FaUsers } from "react-icons/fa6";
@@ -7,6 +6,7 @@ import { TbFilePercent } from "react-icons/tb";
 import { GiTakeMyMoney } from "react-icons/gi";
 import { Link, useNavigate } from "react-router-dom";
 import { message } from "antd";
+import "./style.css"; // Assuming the CSS file exists and styles the component
 
 const NumberFormat = (value) => {
   if (!value) return "0";
