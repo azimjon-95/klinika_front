@@ -18,6 +18,13 @@
     width: 200px;
 }
 
+.room_Box-cont {
+    width: 100%;
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    margin-bottom: 6px;
+}
 
 /* Customize the label (the container) */
 .containerChe {

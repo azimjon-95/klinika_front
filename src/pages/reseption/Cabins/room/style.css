@@ -5,6 +5,10 @@
 .my-table-box {
   width: 100%;
   height: 50px;
+  display: flex;
+  align-items: center;
+  overflow: auto;
+  gap: 4px;
 }
 
 .my-table-box_main {
@@ -53,17 +57,14 @@
   margin: auto;
 }
 
-.my-table-box_extro {
-  height: 50px;
+
+.my-table-container {
+  width: 100%;
+  position: relative;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  gap: 5px;
 }
-
-/* .my-table-box.my-table-box_extro {
-  overflow-y: auto;
-} */
 
 .box-my_extro {
   display: flex;
@@ -74,33 +75,33 @@
   border-bottom: 0.5px solid #cccccc;
 }
 
-.my-table-box.my-table-box_extro::-webkit-scrollbar {
-  height: 3px;
+.my-table-box.my-table-box::-webkit-scrollbar {
+  width: 3px;
 }
 
-.my-table-box.my-table-box_extro::-webkit-scrollbar-thumb {
+.my-table-box.my-table-box::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
   /* Scroll qo'lining rangi */
   border-radius: 4px;
   /* Scrollning dumaloq burchaklari */
 }
 
-.my-table-box.my-table-box_extro::-webkit-scrollbar-track {
+.my-table-box.my-table-box::-webkit-scrollbar-track {
   background-color: rgba(0, 0, 0, 0.1);
   /* Scrollning asosiy joyi */
 }
 
-.my-table-box_extro .ant-card-green {
+.my-table-box .ant-card-green {
   background-color: green;
   color: white !important;
 }
 
-.my-table-box_extro .ant-card-red {
+.my-table-box .ant-card-red {
   background-color: red;
   color: white !important;
 }
 
-.my-table-box_extro .ant-card-yellow {
+.my-table-box .ant-card-yellow {
   background-color: yellow;
   color: black !important;
 }
@@ -129,7 +130,15 @@
 .extro-inp-box {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: center !important;
+  position: absolute;
+  right: 0px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #fff;
+  padding: 4px 0;
+  /* faqat chap tomondan shadow */
+  box-shadow: -6px 0 6px -1px rgb(255, 255, 255);
 }
 
 .extro-inp-box input {
@@ -177,7 +186,7 @@
   height: 0;
   border-left: 5.55px solid transparent;
   border-right: 5.55px solid transparent;
-  border-top: 11.11px solid dodgerblue;
+  border-top: 11.11px solid green;
   /* Uchburchakning yuqori qismi */
 }
 
@@ -446,5 +455,624 @@
   .modal-button {
     padding: 8px 16px;
     font-size: 0.9rem;
+  }
+}
+
+
+
+
+
+/* ============================ */
+
+
+/* Medical Modal Styles */
+.medical-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: modalOverlayFadeIn 0.3s ease-out;
+}
+
+.medical-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+  border: 1px solid #e8f4fd;
+}
+
+/* Modal Header */
+.medical-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.modal-tab-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.tab-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.tab-btn.active {
+  background: rgba(255, 255, 255, 0.95);
+  color: #4a5568;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tab-icon {
+  font-size: 12px;
+}
+
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+/* Modal Body */
+.medical-modal-body {
+  padding: 24px;
+  background: #fafbfc;
+}
+
+/* Patient Info Card */
+.patient-info-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e8f4fd;
+}
+
+.patient-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.patient-details h3 {
+  margin: 0 0 4px 0;
+  color: #2d3748;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.room-info {
+  margin: 0 0 8px 0;
+  color: #718096;
+  font-size: 14px;
+}
+
+.debt-amount {
+  margin: 0;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.debt-value {
+  color: #e53e3e;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Payment Form */
+.payment-form {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e8f4fd;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.payment-input {
+  width: 100%;
+  padding: 12px 50px 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: #f7fafc;
+  box-sizing: border-box;
+}
+
+.payment-input:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+  background: white;
+}
+
+.input-currency {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #718096;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+/* Payment Type Selector */
+.payment-type-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f7fafc;
+  position: relative;
+}
+
+.payment-option:hover {
+  border-color: #cbd5e0;
+  background: white;
+}
+
+.payment-option.selected {
+  border-color: #4299e1;
+  background: #ebf8ff;
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1);
+}
+
+.payment-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.option-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.payment-option.selected .option-text {
+  color: #2b6cb0;
+}
+
+/* Payment Submit Button */
+.payment-submit-btn {
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.payment-submit-btn:hover:not(.disabled) {
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.payment-submit-btn.disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-icon {
+  font-size: 14px;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Day Management */
+.day-management {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e8f4fd;
+}
+
+.day-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.day-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f7fafc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.day-action-btn:hover {
+  background: white;
+  border-color: #cbd5e0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.add-day:hover {
+  border-color: #68d391;
+  box-shadow: 0 4px 12px rgba(104, 211, 145, 0.2);
+}
+
+.remove-day:hover {
+  border-color: #fc8181;
+  box-shadow: 0 4px 12px rgba(252, 129, 129, 0.2);
+}
+
+.day-action-btn .btn-icon {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #4a5568;
+}
+
+.add-day .btn-icon {
+  color: #38a169;
+}
+
+.remove-day .btn-icon {
+  color: #e53e3e;
+}
+
+.day-action-btn span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
+
+.day-action-btn small {
+  font-size: 12px;
+  color: #718096;
+  line-height: 1.4;
+}
+
+/* Day Cards Enhancement */
+.day-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.day-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+}
+
+.day-btn:hover::before {
+  width: 30px;
+  height: 30px;
+}
+
+.increment-btn:hover {
+  background-color: #38a169 !important;
+  transform: scale(1.1);
+}
+
+.decrement-btn:hover {
+  background-color: #e53e3e !important;
+  transform: scale(1.1);
+}
+
+/* Animations */
+@keyframes modalOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Medical Theme Colors */
+:root {
+  --medical-primary: #667eea;
+  --medical-secondary: #764ba2;
+  --medical-success: #48bb78;
+  --medical-danger: #e53e3e;
+  --medical-warning: #ed8936;
+  --medical-info: #4299e1;
+  --medical-light: #f7fafc;
+  --medical-dark: #2d3748;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .medical-modal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .medical-modal-header {
+    padding: 16px;
+  }
+
+  .modal-tab-buttons {
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .tab-btn {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .medical-modal-body {
+    padding: 16px;
+  }
+
+  .patient-info-card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .patient-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .payment-form,
+  .day-management {
+    padding: 16px;
+  }
+
+  .day-actions {
+    gap: 12px;
+  }
+
+  .day-action-btn {
+    padding: 16px;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.debt-card {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.debt-details:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.debt-details {
+  border-radius: 12px;
+  margin-bottom: 12px;
+  width: 80px;
+  cursor: help;
+  background-color: #f1f7fd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 8px 4px;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  font-family: 'Inter', sans-serif;
+}
+
+.debt-details-green {
+  border: 1px solid green;
+  color: green !important;
+  /* Light green for full payment */
+}
+
+.debt-details-green .price-label {
+  color: green !important;
+}
+
+.debt-details-red .price-label {
+  color: #ff1100 !important;
+}
+
+.debt-details-gold .price-label {
+  color: goldenrod !important;
+}
+
+.debt-details-red {
+  border: 1px solid #ff1100;
+}
+
+.debt-details-gold {
+  border: 1px solid goldenrod;
+  color: goldenrod !important;
+  /* Light gold for partial payment */
+}
+
+.date-label,
+.price-label {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #2d3748;
+}
+
+.date-label i,
+.price-label i {
+  margin-right: 8px;
+  color: #4299e1;
+  /* Soft blue for medical theme */
+}
+
+.date-label {
+  font-weight: 500;
+}
+
+.price-label {
+  font-weight: 600;
+  /* Green for financial data */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .debt-card {
+    padding: 12px;
+  }
+
+  .date-label,
+  .price-label {
+    font-size: 14px;
   }
 }

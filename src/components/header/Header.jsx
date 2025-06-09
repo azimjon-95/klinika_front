@@ -1,7 +1,9 @@
+
+// Header.js - Enhanced header component with better logout flow
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Modal, Button } from 'antd';
+import { Modal, Button, message } from 'antd';
 import { Calendar } from 'lucide-react';
 import { RiLogoutCircleRLine, RiUser3Line, RiSearchLine, RiCloseLine } from 'react-icons/ri';
 import DatePicker from 'react-datepicker';
@@ -20,13 +22,13 @@ function Header() {
   const { selectedMonth } = useSelector((state) => state.month);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const searchPanelRef = useRef(null);
   const profileToggleRef = useRef(null);
 
   // Set default date to current month
-  const currentDate = new Date(); // Current date: 2025-06-05
-  const defaultMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`; // '2025-06'
-
+  const currentDate = new Date();
+  const defaultMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
 
   // Compute selectedDate, ensuring it's a valid Date object
   const selectedDate = selectedMonth
@@ -44,12 +46,34 @@ function Header() {
     setIsModalOpen(true);
   };
 
-  const handleModalOk = () => {
-    dispatch(logout());
-    setIsProfileOpen(false);
-    setIsModalOpen(false);
-    dispatch(clearSearchQuery());
-    navigate('/login');
+  const handleModalOk = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      // Clear search query
+      dispatch(clearSearchQuery());
+
+      // Close profile panel
+      setIsProfileOpen(false);
+
+      // Dispatch logout action
+      dispatch(logout());
+
+      // Show success message
+      message.success("Muvaffaqiyatli tizimdan chiqdingiz!");
+
+      // Small delay for better UX
+      setTimeout(() => {
+        navigate('/login', { replace: true });
+      }, 500);
+
+    } catch (error) {
+      message.error("Chiqishda xatolik yuz berdi!");
+      console.error("Logout error:", error);
+    } finally {
+      setIsModalOpen(false);
+      setIsLoggingOut(false);
+    }
   };
 
   const handleModalCancel = () => {
@@ -88,7 +112,7 @@ function Header() {
 
   useEffect(() => {
     if (!selectedMonth || selectedMonth === '2025-01') {
-      dispatch(setSelectedMonth(defaultMonth)); // Force set to '2025-06'
+      dispatch(setSelectedMonth(defaultMonth));
     }
   }, [selectedMonth, dispatch, defaultMonth]);
 
@@ -107,7 +131,7 @@ function Header() {
               showMonthYearPicker
               className="complex-month-selector"
               placeholderText="Yil-Oy tanlang"
-              calendarStartMonth={currentDate} // Ensure calendar opens to current month
+              calendarStartMonth={currentDate}
             />
           </div>
         )}
@@ -142,8 +166,13 @@ function Header() {
                 <p className="profile-role">{role || 'Role not specified'}</p>
               </div>
             </div>
-            <button className="logout-btn" onClick={showLogoutModal}>
-              <RiLogoutCircleRLine /> Chiqish
+            <button
+              className="logout-btn"
+              onClick={showLogoutModal}
+              disabled={isLoggingOut}
+            >
+              <RiLogoutCircleRLine />
+              {isLoggingOut ? "Chiqilmoqda..." : "Chiqish"}
             </button>
           </div>
         )}
@@ -155,16 +184,37 @@ function Header() {
         onOk={handleModalOk}
         onCancel={handleModalCancel}
         centered
-        maskClosable
+        maskClosable={!isLoggingOut}
         okText="Ha"
         cancelText="Yo'q"
-        okButtonProps={{ className: 'logout-modal-ok', danger: true }}
-        cancelButtonProps={{ className: 'logout-modal-cancel' }}
+        confirmLoading={isLoggingOut}
+        okButtonProps={{
+          className: 'logout-modal-ok',
+          danger: true,
+          loading: isLoggingOut
+        }}
+        cancelButtonProps={{
+          className: 'logout-modal-cancel',
+          disabled: isLoggingOut
+        }}
+        closable={!isLoggingOut}
         footer={[
-          <Button key="cancel" className="logout-modal-cancel" onClick={handleModalCancel}>
+          <Button
+            key="cancel"
+            className="logout-modal-cancel"
+            onClick={handleModalCancel}
+            disabled={isLoggingOut}
+          >
             Yo'q
           </Button>,
-          <Button key="ok" className="logout-modal-ok" type="primary" danger onClick={handleModalOk}>
+          <Button
+            key="ok"
+            className="logout-modal-ok"
+            type="primary"
+            danger
+            onClick={handleModalOk}
+            loading={isLoggingOut}
+          >
             Ha
           </Button>,
         ]}
@@ -176,3 +226,5 @@ function Header() {
 }
 
 export default Header;
+
+

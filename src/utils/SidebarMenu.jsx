@@ -4,9 +4,12 @@ import {
   FaUserMd,
   FaHospitalUser,
   FaCog,
+  FaNotesMedical,
+  FaHistory,
+  FaBed,
+  FaCalendarCheck, FaMoneyBillWave
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
-import { IoPulse } from "react-icons/io5";
 import { BsPeopleFill } from "react-icons/bs";
 
 export const menuItems = {
@@ -14,24 +17,34 @@ export const menuItems = {
     {
       icon: <FaStethoscope size={20} />,
       path: "/doctor",
-      label: "Shifokor Qabuli", // Yoki "Qabul"
+      label: "Shifokor Qabuli",
     },
   ],
   reception: [
     {
       icon: <FaHospitalUser size={20} />,
       path: "/reception",
-      label: "Ro'yxatga olish", // Reception ma'nosi
+      label: "Ro'yxatga olish",
     },
     {
-      icon: <FaHospitalUser size={20} />,
+      icon: <FaMoneyBillWave />,
+      path: "/expense",
+      label: "Harajatlar",
+    },
+    {
+      icon: <FaHistory size={20} />, // Changed to FaHistory for medical history
       path: "/history",
-      label: "Tarix", // Reception ma'nosi
+      label: "Tarix",
     },
     {
-      icon: <FaHospitalUser size={20} />,
+      icon: <FaBed size={20} />, // Changed to FaBed for treatment/cabins
       path: "/cabins",
-      label: "Davolanish", // Reception ma'nosi
+      label: "Davolanish",
+    },
+    {
+      icon: <FaCalendarCheck size={20} />, // Changed to FaCalendarCheck for attendance
+      path: "/attendance",
+      label: "Davomat",
     },
   ],
   director: [
@@ -51,7 +64,7 @@ export const menuItems = {
       label: "Sozlamalar",
     },
     {
-      icon: <FaHospitalUser size={20} />,
+      icon: <FaNotesMedical size={20} />, // Changed to FaNotesMedical for reception department
       label: "Qabul bo‘limi",
       children: [
         {
@@ -60,16 +73,25 @@ export const menuItems = {
           label: "Ro'yxatdan o'tkazish",
         },
         {
-          icon: <FaHospitalUser size={20} />,
-          path: "/history",
-          label: "Tarix", // Reception ma'nosi
+          icon: <FaMoneyBillWave />,
+          path: "/expense",
+          label: "Harajatlar",
         },
         {
-          icon: <FaHospitalUser size={20} />,
+          icon: <FaHistory size={20} />, // Changed to FaHistory for history
+          path: "/history",
+          label: "Tarix",
+        },
+        {
+          icon: <FaBed size={20} />, // Changed to FaBed for treatment/cabins
           path: "/cabins",
-          label: "Davolanish", // Reception ma'nosi
-        }
-
+          label: "Davolanish",
+        },
+        {
+          icon: <FaCalendarCheck size={20} />, // Changed to FaCalendarCheck for attendance
+          path: "/attendance",
+          label: "Davomat",
+        },
       ],
     },
     {

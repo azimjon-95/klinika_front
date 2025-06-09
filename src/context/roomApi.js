@@ -89,6 +89,16 @@ export const roomApi = api.injectEndpoints({
             }),
             invalidatesTags: [{ type: "Room", id: "LIST" }],
         }),
+
+
+        changeTreatingDays: builder.mutation({
+            query: (daysData) => ({
+                url: "/roomStory/changeDays",
+                method: "PATCH",
+                body: daysData,
+            }),
+            invalidatesTags: [{ type: "Room", id: "STORIES" }],
+        }),
     }),
 });
 
@@ -103,4 +113,5 @@ export const {
     useAddPatientToRoomMutation,
     useRemovePatientFromRoomMutation,
     usePayForRoomMutation,
+    useChangeTreatingDaysMutation
 } = roomApi;

@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+
+// Login.js - Enhanced login component with better UX
+import React, { useState, useEffect } from "react";
 import { FaUser } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { PiLockKeyFill } from "react-icons/pi";
 import { message } from "antd";
 import { AiFillEyeInvisible, AiFillEye } from "react-icons/ai";
+import { setCredentials } from "../../context/actions/authSlice";
 import axios from "../../api";
 import bg from "../../assets/bg.svg";
 import wave from "../../assets/wave.png";
@@ -12,30 +16,88 @@ import "./login.css";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isAuthenticated, role } = useSelector((state) => state.auth);
+
   const [eye, setEye] = useState(false);
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && role) {
+      const getDefaultRoute = (userRole) => {
+        const roleRoutes = {
+          'admin': '/admin',
+          'director': '/director',
+          'doctor': '/doctor',
+          'nurse': '/nurse'
+        };
+        return roleRoutes[userRole] || '/dashboard';
+      };
+
+      navigate(getDefaultRoute(role), { replace: true });
+    }
+  }, [isAuthenticated, role, navigate]);
+
+  const clearForm = () => {
+    setLogin("");
+    setPassword("");
+    setEye(false);
+  };
+
+  const getDefaultRoute = (userRole) => {
+    const roleRoutes = {
+      'director': '/director',
+      'doctor': '/doctor',
+      'reception': '/reception'
+    };
+    return roleRoutes[userRole] || '/dashboard';
+  };
+
   const onFinishHandler = async (e) => {
     e.preventDefault();
+
+    if (!login.trim() || !password.trim()) {
+      message.warning("Login va parolni kiriting!");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await axios.post("/admin/login", { login, password });
+      const res = await axios.post("/admin/login", {
+        login: login.trim(),
+        password: password.trim()
+      });
+
       const { message: successMessage, innerData } = res.data;
-      message.success(successMessage);
-      localStorage.setItem(
-        "doctor",
-        `${innerData?.admin.firstName} ${innerData?.admin.lastName}`.trim()
-      );
-      localStorage.setItem("token", innerData?.token);
-      localStorage.setItem("role", innerData?.admin.role);
-      navigate(`/${innerData?.admin.role}`);
+
+      // Store doctor name for backward compatibility
+      const doctorName = `${innerData?.admin.firstName || ''} ${innerData?.admin.lastName || ''}`.trim();
+      localStorage.setItem("doctor", doctorName);
+
+      // Dispatch credentials to Redux store
+      dispatch(setCredentials({
+        adminFullname: doctorName,
+        role: innerData?.admin.role,
+        token: innerData?.token
+      }));
+
+      message.success(successMessage || "Muvaffaqiyatli tizimga kirdingiz!");
+
+      // Clear form
+      clearForm();
+
+      // Navigate to appropriate route based on role
+      const defaultRoute = getDefaultRoute(innerData?.admin.role);
+      navigate(defaultRoute, { replace: true });
+
     } catch (error) {
-      message.error(
-        error.response?.data?.message || "Tizimga kirishda xatolik yuz berdi!"
-      );
+      const errorMessage = error.response?.data?.message || "Tizimga kirishda xatolik yuz berdi!";
+      message.error(errorMessage);
+      console.error("Login error:", error);
     } finally {
       setLoading(false);
     }
@@ -52,6 +114,7 @@ const Login = () => {
           <form className="FormLogin" onSubmit={onFinishHandler}>
             <img src={imgDoc} alt="kirish LOGO" />
             <h2>Tizimga kirish</h2>
+
             <div className="input-div one">
               <div className="iconCont">
                 <FaUser />
@@ -62,10 +125,13 @@ const Login = () => {
                   onChange={(e) => setLogin(e.target.value)}
                   type="text"
                   className="input"
-                  placeholder="login"
+                  placeholder="Login"
+                  disabled={loading}
+                  autoComplete="username"
                 />
               </div>
             </div>
+
             <div className="input-div pass">
               <div className="iconCont">
                 <PiLockKeyFill />
@@ -76,14 +142,26 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   type={!eye ? "password" : "text"}
                   className="input"
-                  placeholder="parol"
+                  placeholder="Parol"
+                  disabled={loading}
+                  autoComplete="current-password"
                 />
-                <button type="button" onClick={() => setEye(!eye)}>
+                <button
+                  type="button"
+                  onClick={() => setEye(!eye)}
+                  disabled={loading}
+                  className="eye-button"
+                >
                   {eye ? <AiFillEye /> : <AiFillEyeInvisible />}
                 </button>
               </div>
             </div>
-            <button type="submit" className="btnIN" disabled={loading}>
+
+            <button
+              type="submit"
+              className="btnIN"
+              disabled={loading || !login.trim() || !password.trim()}
+            >
               {loading ? (
                 <span className="btn-loading">
                   <span className="spinner"></span> Yuklanmoqda...
@@ -100,6 +178,5 @@ const Login = () => {
 };
 
 export default Login;
-
 
 

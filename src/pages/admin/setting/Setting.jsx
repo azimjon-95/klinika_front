@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Form, Input, Button, TimePicker, Table, Spin, Typography, Card, Row, Col, Space, Upload, message, Popconfirm } from 'antd';
+import { Form, Input, Checkbox, Button, TimePicker, Table, Spin, Typography, Card, Row, Col, Space, Upload, message, Popconfirm } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusCircleOutlined, MedicineBoxOutlined, UploadOutlined } from '@ant-design/icons';
 import { useGetClinicsQuery, useCreateClinicMutation, useUpdateClinicMutation, useDeleteClinicMutation } from '../../../context/clinicApi';
 import { handleUpload } from '../../../utils/handleUpload';
@@ -9,16 +9,29 @@ import './style.css';
 
 const { Title } = Typography;
 
+// Work days mapping
+const WORK_DAYS = [
+    { label: 'Dushanba', value: 'monday' },
+    { label: 'Seshanba', value: 'tuesday' },
+    { label: 'Chorshanba', value: 'wednesday' },
+    { label: 'Payshanba', value: 'thursday' },
+    { label: 'Juma', value: 'friday' },
+    { label: 'Shanba', value: 'saturday' },
+    { label: 'Yakshanba', value: 'sunday' },
+];
+
 // Form validation rules
 const FORM_RULES = {
     clinicName: [{ required: true, message: 'Iltimos, klinika nomini kiriting' }],
-    startTime: [{ required: true, message: 'Iltimos, boshlanish vaqtini tanlang' }],
-    endTime: [{ required: true, message: 'Iltimos, tugash vaqtini tanlang' }],
+    work_schedule_start_time: [{ required: true, message: 'Iltimos, boshlanish vaqtini tanlang' }],
+    work_schedule_end_time: [{ required: true, message: 'Iltimos, tugash vaqtini tanlang' }],
     address: [{ required: true, message: 'Iltimos, manzilni kiriting' }],
     phone: [
         { required: true, message: 'Iltimos, telefon raqamini kiriting' },
         { pattern: /^\+?\d{10,15}$/, message: 'Noto\'g\'ri telefon raqami' },
     ],
+    lunch_break_start_time: [{ required: false }],
+    lunch_break_end_time: [{ required: false }],
 };
 
 const ClinicManagement = () => {
@@ -26,6 +39,7 @@ const ClinicManagement = () => {
     const [clinicToEdit, setClinicToEdit] = useState(null);
     const [fileList, setFileList] = useState([]);
     const [uploading, setUploading] = useState(false);
+    const [selectedDays, setSelectedDays] = useState([]);
 
     // RTK Query hooks
     const { data: clinics, isLoading, error } = useGetClinicsQuery();
@@ -36,19 +50,39 @@ const ClinicManagement = () => {
     // Set form values when editing
     useEffect(() => {
         if (clinicToEdit) {
+            const workDays = clinicToEdit.work_schedule?.work_days || [];
+            setSelectedDays(workDays);
             form.setFieldsValue({
                 clinicName: clinicToEdit.clinicName,
-                startTime: clinicToEdit.startTime ? moment(clinicToEdit.startTime, 'HH:mm') : null,
-                endTime: clinicToEdit.endTime ? moment(clinicToEdit.endTime, 'HH:mm') : null,
                 address: clinicToEdit.address,
                 phone: clinicToEdit.phone,
+                work_schedule: {
+                    start_time: clinicToEdit.work_schedule?.start_time ? moment(clinicToEdit.work_schedule.start_time, 'HH:mm') : null,
+                    end_time: clinicToEdit.work_schedule?.end_time ? moment(clinicToEdit.work_schedule.end_time, 'HH:mm') : null,
+                    work_days: workDays,
+                    lunch_break: {
+                        start_time: clinicToEdit.work_schedule?.lunch_break?.start_time ? moment(clinicToEdit.work_schedule.lunch_break.start_time, 'HH:mm') : null,
+                        end_time: clinicToEdit.work_schedule?.lunch_break?.end_time ? moment(clinicToEdit.work_schedule.lunch_break.end_time, 'HH:mm') : null,
+                        enabled: clinicToEdit.work_schedule?.lunch_break?.enabled ?? true,
+                    },
+                },
             });
             setFileList(clinicToEdit.logo ? [{ uid: '-1', name: 'logotip.jpg', status: 'done', url: clinicToEdit.logo }] : []);
         } else {
             form.resetFields();
             setFileList([]);
+            setSelectedDays(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']);
         }
     }, [clinicToEdit, form]);
+
+    // Handle day selection
+    const handleDayToggle = useCallback((day) => {
+        setSelectedDays((prev) => {
+            const newDays = prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day];
+            form.setFieldsValue({ work_schedule: { ...form.getFieldValue('work_schedule'), work_days: newDays } });
+            return newDays;
+        });
+    }, [form]);
 
     // Handle form submission
     const handleSubmit = useCallback(
@@ -63,10 +97,20 @@ const ClinicManagement = () => {
             }
 
             const formattedValues = {
-                ...values,
-                startTime: values.startTime ? values.startTime.format('HH:mm') : '',
-                endTime: values.endTime ? values.endTime.format('HH:mm') : '',
+                clinicName: values.clinicName,
+                address: values.address,
+                phone: values.phone,
                 logo: logoUrl,
+                work_schedule: {
+                    start_time: values.work_schedule?.start_time ? values.work_schedule.start_time.format('HH:mm') : '08:00',
+                    end_time: values.work_schedule?.end_time ? values.work_schedule.end_time.format('HH:mm') : '17:00',
+                    work_days: values.work_schedule?.work_days || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+                    lunch_break: {
+                        start_time: values.work_schedule?.lunch_break?.start_time ? values.work_schedule.lunch_break.start_time.format('HH:mm') : '12:00',
+                        end_time: values.work_schedule?.lunch_break?.end_time ? values.work_schedule.lunch_break.end_time.format('HH:mm') : '13:00',
+                        enabled: values.work_schedule?.lunch_break?.enabled ?? true,
+                    },
+                },
             };
 
             try {
@@ -80,6 +124,7 @@ const ClinicManagement = () => {
                 form.resetFields();
                 setFileList([]);
                 setClinicToEdit(null);
+                setSelectedDays(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']);
             } catch (error) {
                 message.error(`Klinikani saqlashda xatolik: ${error?.data?.message || error.message}`);
             }
@@ -93,23 +138,21 @@ const ClinicManagement = () => {
     }, []);
 
     // Handle delete with confirmation
-    const handleDelete = useCallback(
-        async (id) => {
-            try {
-                await deleteClinic(id).unwrap();
-                message.success('Klinika muvaffaqiyatli o\'chirildi');
-            } catch (error) {
-                message.error(`Klinikani o\'chirishda xatolik: ${error?.data?.message || error.message}`);
-            }
-        },
-        [deleteClinic]
-    );
+    const handleDelete = async (id) => {
+        try {
+            await deleteClinic(id).unwrap();
+            message.success('Klinika muvaffaqiyatli o\'chirildi');
+        } catch (error) {
+            message.error(`Klinikani o\'chirishda xatolik: ${error?.data?.message || error.message}`);
+        }
+    };
 
     // Handle cancel
     const handleCancel = useCallback(() => {
         form.resetFields();
         setFileList([]);
         setClinicToEdit(null);
+        setSelectedDays(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']);
     }, [form]);
 
     // Upload props
@@ -153,10 +196,27 @@ const ClinicManagement = () => {
                 key: 'clinicName',
             },
             {
-                title: 'Boshlanish va Tugash vaqti',
-                dataIndex: ['startTime', 'endTime'],
-                key: 'timeRange',
-                render: (_, record) => `${record.startTime} - ${record.endTime}`,
+                title: 'Ish Vaqti',
+                dataIndex: 'work_schedule',
+                key: 'work_schedule',
+                render: (work_schedule) => `${work_schedule.start_time} - ${work_schedule.end_time}`,
+            },
+            {
+                title: 'Ish Kunlari',
+                dataIndex: ['work_schedule', 'work_days'],
+                key: 'work_days',
+                render: (work_days) => {
+                    const selectedCount = work_days.length;
+                    const totalCount = 7; // Total possible days (monday to sunday)
+                    const unselectedCount = totalCount - selectedCount;
+                    return `${selectedCount}/${unselectedCount}`;
+                },
+            },
+            {
+                title: 'Tushlik Vaqti',
+                dataIndex: ['work_schedule', 'lunch_break'],
+                key: 'lunch_break',
+                render: (lunch_break) => (lunch_break.enabled ? `${lunch_break.start_time} - ${lunch_break.end_time}` : 'Yo\'q'),
             },
             {
                 title: 'Manzil',
@@ -201,9 +261,6 @@ const ClinicManagement = () => {
             ? [clinics?.innerData]
             : [];
 
-    // Log for debugging
-
-
     return (
         <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
             <Title level={3} style={{ display: 'flex', alignItems: 'center', color: '#1890ff' }}>
@@ -215,21 +272,24 @@ const ClinicManagement = () => {
                 title={clinicToEdit ? 'Klinikani Tahrirlash' : 'Yangi Klinika Qo\'shish'}
                 style={{ marginBottom: 24, borderRadius: 8, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }}
             >
-                <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={{ clinicName: '', startTime: null, endTime: null, address: '', phone: '' }}>
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleSubmit}
+                    initialValues={{
+                        clinicName: '',
+                        address: '',
+                        phone: '',
+                        work_schedule: {
+                            work_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+                            lunch_break: { enabled: true },
+                        },
+                    }}
+                >
                     <Row gutter={16}>
                         <Col xs={24} md={12}>
                             <Form.Item label="Klinika Nomi" name="clinicName" rules={FORM_RULES.clinicName}>
                                 <Input prefix={<MedicineBoxOutlined />} placeholder="Klinika nomini kiriting" />
-                            </Form.Item>
-                        </Col>
-                        <Col xs={24} md={12}>
-                            <Form.Item label="Boshlanish Vaqti" name="startTime" rules={FORM_RULES.startTime}>
-                                <TimePicker format="HH:mm" style={{ width: '100%' }} placeholder="Vaqtni tanlang" />
-                            </Form.Item>
-                        </Col>
-                        <Col xs={24} md={12}>
-                            <Form.Item label="Tugash Vaqti" name="endTime" rules={FORM_RULES.endTime}>
-                                <TimePicker format="HH:mm" style={{ width: '100%' }} placeholder="Vaqtni tanlang" />
                             </Form.Item>
                         </Col>
                         <Col xs={24} md={12}>
@@ -249,6 +309,46 @@ const ClinicManagement = () => {
                                         Logotipni Yuklash (ixtiyoriy)
                                     </Button>
                                 </Upload>
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                            <Form.Item label="Boshlanish Vaqti" name={['work_schedule', 'start_time']} rules={FORM_RULES.work_schedule_start_time}>
+                                <TimePicker format="HH:mm" style={{ width: '100%' }} placeholder="Vaqtni tanlang" />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                            <Form.Item label="Tugash Vaqti" name={['work_schedule', 'end_time']} rules={FORM_RULES.work_schedule_end_time}>
+                                <TimePicker format="HH:mm" style={{ width: '100%' }} placeholder="Vaqtni tanlang" />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24}>
+                            <Form.Item label="Ish Kunlari" name={['work_schedule', 'work_days']}>
+                                <Space wrap>
+                                    {WORK_DAYS.map((day) => (
+                                        <Button
+                                            key={day.value}
+                                            type={selectedDays.includes(day.value) ? 'primary' : 'default'}
+                                            onClick={() => handleDayToggle(day.value)}
+                                        >
+                                            {day.label}
+                                        </Button>
+                                    ))}
+                                </Space>
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                            <Form.Item label="Tushlik Boshlanishi" name={['work_schedule', 'lunch_break', 'start_time']} rules={FORM_RULES.lunch_break_start_time}>
+                                <TimePicker format="HH:mm" style={{ width: '100%' }} placeholder="Vaqtni tanlang" />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                            <Form.Item label="Tushlik Tugashi" name={['work_schedule', 'lunch_break', 'end_time']} rules={FORM_RULES.lunch_break_end_time}>
+                                <TimePicker format="HH:mm" style={{ width: '100%' }} placeholder="Vaqtni tanlang" />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24}>
+                            <Form.Item name={['work_schedule', 'lunch_break', 'enabled']} valuePropName="checked">
+                                <Checkbox>Tushlik Vaqti Yoqilgan</Checkbox>
                             </Form.Item>
                         </Col>
                     </Row>

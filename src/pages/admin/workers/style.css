@@ -14,6 +14,11 @@
     width: 100%;
 }
 
+.form-row {
+    display: flex !important;
+    gap: 1rem;
+}
+
 .form-card form {
     /* display: flex; */
     width: 100%;
@@ -41,19 +46,19 @@
 
 .form-group {
     width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: .5rem !important;
 }
 
 .form-group label {
     display: block;
     color: #555;
     font-weight: 500;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.1rem;
 }
 
 .form-input {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.50rem;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 1rem;
@@ -73,7 +78,7 @@
 
 .role-button {
     flex: 1;
-    padding: 0.8rem 0.5rem;
+    padding: 0.45rem 0.5rem;
     border: 1px solid #ccc;
     border-radius: 4px;
     background-color: #fff;
@@ -138,4 +143,31 @@
     color: #ff4d4f;
     font-size: 12px;
     margin-top: 4px;
+}
+
+/* Styling only for the "Yangi xodim qo'shish" tab (6th tab) */
+.ant-tabs-tab:nth-child(5) .ant-tabs-tab-btn {
+    background-color: dodgerblue;
+    border-radius: 8px;
+    padding: 3px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+
+:where(.css-dev-only-do-not-override-mc1tut).ant-tabs .ant-tabs-tab:nth-child(5).ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #ffffff;
+}
+
+.ant-tabs-tab:nth-child(5) .ant-tabs-tab-active {
+    background-color: transparent;
+    color: #fff !important;
+    border-radius: 8px;
+    padding: 3px 16px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }

@@ -17,7 +17,7 @@ function Layout() {
     }
   }, [role, navigate]);
 
-  const isDirectorPath = location.pathname === '/director';
+  const isDirectorPath = location.pathname === '/director' || "/expense";
 
   return (
     <div className="layout">

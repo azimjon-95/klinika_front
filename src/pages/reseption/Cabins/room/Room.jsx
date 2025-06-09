@@ -1,11 +1,13 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { message, Button, Select, Tooltip, Table, Spin } from "antd";
-import { FaCheck } from "react-icons/fa";
+import React, { useEffect, useRef, useMemo, useState, useCallback } from "react";
+import { message, Button, Tooltip, Table, Spin } from "antd";
+import { FaCheck, FaPlus, FaMinus } from "react-icons/fa";
 import moment from "moment";
 import { GiEntryDoor } from "react-icons/gi";
 import { useNavigate, useParams } from "react-router-dom";
+import { useReactToPrint } from 'react-to-print';
+import ReceiptPrint from './print/ReceiptPrinter';
 import Loading from '../../../../components/loading/LoadingTik';
-import { useGetRoomByIdQuery, useGetRoomsQuery, useRemovePatientFromRoomMutation } from "../../../../context/roomApi";
+import { useGetRoomByIdQuery, useChangeTreatingDaysMutation, usePayForRoomMutation, useRemovePatientFromRoomMutation } from "../../../../context/roomApi";
 import "./style.css";
 
 // Constants
@@ -22,25 +24,44 @@ const formatNumber = (num) => num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "
 const calculateRoomPayment = (record) => record?.paidDays?.reduce((sum, day) => sum + (day?.price || 0), 0) || 0;
 
 function Room() {
-  const [roomModalState, setRoomModalState] = useState(false);
-  const [additionalPrice, setAdditionalPrice] = useState(null);
-  const [inputValue, setInputValue] = useState('');
-  const [debtPayment, setDebtPayment] = useState({});
-  const [isInputDisabled, setIsInputDisabled] = useState(false);
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [showExitModal, setShowExitModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [paymentType, setPaymentType] = useState("naqt");
+  const [sendPrint, setSendPrint] = useState({});
+
+  const receiptRef = useRef();
+
+  // New state for payment modal
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [currentPatient, setCurrentPatient] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [modalType, setModalType] = useState('payment'); // 'payment' or 'days'
 
   const navigate = useNavigate();
   const { id } = useParams();
+  const [changeTreatingDays, { isLoading: isChanging }] = useChangeTreatingDaysMutation();
   const [removePatientFromRoom, { isLoading: isRemoving }] = useRemovePatientFromRoomMutation();
-  const { data: roomData, isLoading: isLoadingRoom, error: roomError } = useGetRoomByIdQuery(id);
-  const { data: allRoomsData, isLoading: isLoadingRooms } = useGetRoomsQuery();
+  const [payForRoom, { isLoading: isPayForRoom }] = usePayForRoomMutation();
+  const { data: roomData, refetch, isLoading: isLoadingRoom, error: roomError } = useGetRoomByIdQuery(id);
 
-  const todaysTime = useMemo(() => moment().utcOffset("+05:00").format("DD.MM.YYYY HH:mm"), []);
   const iconStyle = useMemo(() => ({ fontSize: "20px" }), []);
   const getCategoryLabel = useCallback((category) => ROOM_CATEGORIES[category] || category, []);
 
+
+  const reactToPrintFn = useReactToPrint({
+    contentRef: receiptRef,
+    pageStyle: `
+      @page {
+        size: 80mm auto;
+        margin: 0;
+      }
+      @media print {
+        body { margin: 0; }
+        * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+      }
+    `
+  });
   // Process room data
   const patients = useMemo(() => roomData?.innerData?.capacity?.map((item) => ({
     _id: item._id,
@@ -57,13 +78,6 @@ function Room() {
     active: item.active,
     endDay: item.endDay,
   })) || [], [roomData?.innerData?.capacity]);
-
-  const roomOptions = useMemo(() => allRoomsData?.innerData
-    ?.filter(r => r._id !== id)
-    .map(r => ({
-      value: r._id,
-      label: `[${r.roomNumber}] ${getCategoryLabel(r.category)}`,
-    })) || [], [allRoomsData?.innerData, id, getCategoryLabel]);
 
   const exitRoom = useCallback(async (record) => {
     try {
@@ -94,74 +108,85 @@ function Room() {
     setSelectedPatient(null);
   }, []);
 
-  const switchRoom = useCallback((newRoomId, user) => {
-    const targetRoom = allRoomsData?.innerData?.find((r) => r._id === newRoomId);
-    if (!newRoomId || !user || !targetRoom) {
-      message.error("Ma'lumotlar to'liq emas yoki xona topilmadi");
-      return;
+  // Open payment modal
+  const openPaymentModal = useCallback((record, type = 'payment') => {
+    setCurrentPatient(record);
+    setModalType(type);
+    setShowPaymentModal(true);
+    if (type === 'payment') {
+      setPaymentAmount('');
     }
-
-    if (targetRoom.capacity?.some((u) => u.idNumber === user.clientID || u.clientID === user.clientID)) {
-      message.warning("Bemor xonada avvaldan mavjud");
-      return;
-    }
-
-    if ((targetRoom.capacity?.length || 0) >= targetRoom.usersNumber) {
-      message.warning("Xona to'la, boshqa xona tanlang");
-      return;
-    }
-
-    // Using Ant Design Modal for switchRoom (as per original functionality)
-    Modal.confirm({
-      title: `Bemorni ${targetRoom.roomNumber}-xonaga ko'chirmoqchimisiz?`,
-      icon: <ExclamationCircleFilled />,
-      okText: "Ha",
-      okType: "danger",
-      cancelText: "Yo'q",
-      onOk: () => {
-        try {
-          // Simplified room switch logic (replace with actual API call)
-          message.success(`Bemor ${targetRoom.roomNumber}-xonaga muvaffaqiyatli joylandi!`);
-          if (patients.length === 1) navigate(-1);
-        } catch (error) {
-          message.error("Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
-        }
-      },
-    });
-  }, [allRoomsData?.innerData, patients.length, navigate]);
-
-  const handleDebtPaymentChange = useCallback((e, record) => {
-    const input = e.target.value;
-
-    let updatedPaidDays = [...record.paidDays];
-    console.log();
-
-    setInputValue(input);
-    setAdditionalPrice(operation ? null : parseFloat(input));
   }, []);
 
-  const handlePayDebt = useCallback((item) => {
-    const payments = debtPayment[item.clientID];
-    if (!payments?.length) {
+  // Close payment modal
+  const closePaymentModal = useCallback(() => {
+    setShowPaymentModal(false);
+    setCurrentPatient(null);
+    setPaymentAmount('');
+    setPaymentType("naqt");
+  }, []);
+
+  // Handle payment
+  const handlePayment = useCallback(async () => {
+    if (!paymentAmount || !currentPatient) {
       message.warning("Iltimos, to'lov miqdorini kiriting.");
       return;
     }
 
-    if (inputValue?.match(/^(\d+)([\+\-]\d+)$/)) {
-      message.success("Davolanish kun muvaffaqiyatli yangilandi");
-    } else {
-      setRoomModalState({ record: item, totalPayForRoom: additionalPrice });
-      message.success("To'lov muvaffaqiyatli yangilandi");
-    }
+    try {
+      await payForRoom({
+        roomStoryId: currentPatient._id,
+        amount: +paymentAmount,
+        paymentType,
+      }).unwrap();
+      setSendPrint({
+        roomStoryId: currentPatient._id,
+        amount: +paymentAmount,
+        paymentType,
+        currentPatient
+      })
+      await refetch()
 
-    setAdditionalPrice(null);
-    setInputValue('');
-    setDebtPayment(prev => {
-      const updated = { ...prev };
-      delete updated[item.clientID];
-      return updated;
-    });
-  }, [debtPayment, inputValue, additionalPrice]);
+      message.success("To'lov muvaffaqiyatli amalga oshirildi!");
+      // Print qilish uchun biroz kutish (DOM update bo'lishi uchun)
+      setTimeout(() => {
+        reactToPrintFn();
+      }, 200);
+
+      closePaymentModal();
+    } catch (error) {
+      message.error("Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
+    }
+  }, [paymentAmount, currentPatient, paymentType, payForRoom, closePaymentModal]);
+
+  const handleDayManagement = useCallback(async (action) => {
+    if (!currentPatient) return;
+
+    try {
+      await changeTreatingDays({
+        roomStoryId: action.id,
+        days: 1,
+        action: action.type // "inc" or "dec"
+      }).unwrap();
+
+      // Refetch room data to get the latest state
+      await refetch();
+
+      // Update currentPatient with the latest data from patients
+      const updatedPatient = patients.find((p) => p._id === currentPatient._id);
+      if (updatedPatient) {
+        setCurrentPatient(updatedPatient); // Update the currentPatient state
+      }
+
+      message.success(`Kun muvaffaqiyatli ${action.type === "inc" ? "qo\'shildi" : "olib tashlandi"}!`);
+      if (action.type !== "dec" && action.type !== "inc") {
+        closePaymentModal();
+      }
+    } catch (error) {
+      message.error("Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
+    }
+  }, [currentPatient, patients, refetch, closePaymentModal]);
+
 
   const calculateDebt = useCallback((record) => {
     if (!record?.paidDays || !record?.payForRoom) return 0;
@@ -210,54 +235,34 @@ function Room() {
         );
       },
     },
-    // {
-    //   title: "Xonani almashtirish",
-    //   align: "end",
-    //   render: (record) => (
-    //     <Select
-    //       showSearch
-    //       style={{ width: 132 }}
-    //       placeholder="Xona tanlash"
-    //       optionFilterProp="children"
-    //       options={roomOptions}
-    //       filterOption={(input, option) => option?.label?.toLowerCase().includes(input.toLowerCase())}
-    //       onChange={(newRoomId) => switchRoom(newRoomId, record)}
-    //       disabled={!record.clientID}
-    //       loading={isLoadingRooms}
-    //     />
-    //   ),
-    // },
-  ], [confirmExitRoom, iconStyle, isRemoving, roomOptions, switchRoom, isLoadingRooms, calculateDebt]);
+  ], [confirmExitRoom, iconStyle, isRemoving, calculateDebt]);
 
   const expandedRowRender = useCallback((record) => (
-    <div style={{ display: "flex" }}>
-      <div className="my-table-box my-table-box_extro">
+    <div className="my-table-container">
+      <div className="my-table-box">
         {(record.paidDays || []).map((item, i) => {
-
           const isToday = moment(item.date, "DD.MM.YYYY").isSame(moment(), "day");
 
           return (
-            <div key={i} className={getCardClassName(item.isPaid, item.price, isToday)}>
+            <div key={i} className={getCardClassName(item.isPaid, item.price, isToday)} style={{ position: 'relative' }}>
               <p>{item.date}</p>
               <p>{formatNumber(item.price || 0)} so'm</p>
             </div>
+
           );
         })}
       </div>
       <div className="extro-inp-box">
-        <input
-          type="text"
-          placeholder={`${formatNumber(calculateDebt(record))} so'm`}
-          onChange={(e) => handleDebtPaymentChange(e, record)}
-
-          value={inputValue}
-        />
-        <button disabled={!inputValue} type="primary" onClick={() => handlePayDebt(record)}>
-          <FaCheck />
-        </button>
+        <Button
+          type="primary"
+          onClick={() => openPaymentModal(record, 'payment')}
+          style={{ width: '100%' }}
+        >
+          To'lov qilish ({formatNumber(calculateDebt(record))} so'm)
+        </Button>
       </div>
     </div>
-  ), [getCardClassName, calculateDebt, handleDebtPaymentChange, inputValue, isInputDisabled, handlePayDebt]);
+  ), [getCardClassName, calculateDebt, openPaymentModal]);
 
   const handleExpand = useCallback((expanded, record) => {
     setExpandedRowKeys(expanded ? [record._id] : []);
@@ -283,7 +288,7 @@ function Room() {
   if (roomError) return (
     <div className="updateRoom_wrapper">
       <div className="updateRoom_wrapperbox">
-        <button onClick={() => navigate(-1)}>Orqaga</button>
+        <button onClick={() => navigate(-1)}> Orqaga</button>
         <p>Xatolik yuz berdi: {roomError.message || 'Noma\'lum xatolik'}</p>
       </div>
     </div>
@@ -292,7 +297,7 @@ function Room() {
   return (
     <div className="updateRoom_wrapper">
       <div className="updateRoom_wrapperbox">
-        <button onClick={() => navigate(-1)}>Orqaga</button>
+        <button onClick={() => navigate(-1)}> Orqaga</button>
         {roomDetails.map((item, index) => (
           <div key={index} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", gap: 4 }}>
             <strong>{item.label}:</strong>
@@ -310,6 +315,8 @@ function Room() {
         loading={isLoadingRoom}
         expandable={{ expandedRowRender, expandedRowKeys, onExpand: handleExpand }}
       />
+
+      {/* Exit Modal */}
       {showExitModal && selectedPatient && (
         <div className="custom-modal-overlay">
           <div className="custom-modal">
@@ -328,14 +335,189 @@ function Room() {
                   Ha
                 </button>
               </div>
-              {
-                isRemoving &&
+              {isRemoving && (
                 <div className="outloading"> <Spin /></div>
-              }
+              )}
             </div>
           </div>
         </div>
       )}
+
+      {/* Custom Payment Modal */}
+      {showPaymentModal && currentPatient && (
+        <div className="medical-modal-overlay">
+          <div className="medical-modal">
+            {/* Modal Header */}
+            <div className="medical-modal-header">
+              <div className="modal-tab-buttons">
+                <button
+                  className={`tab-btn ${modalType === 'payment' ? 'active' : ''}`}
+                  onClick={() => setModalType('payment')}
+                >
+                  <FaCheck className="tab-icon" />
+                  To'lov qilish
+                </button>
+                <button
+                  className={`tab-btn ${modalType === 'days' ? 'active' : ''}`}
+                  onClick={() => setModalType('days')}
+                >
+                  <FaPlus className="tab-icon" />
+                  Kun boshqaruvi
+                </button>
+              </div>
+              <button className="modal-close-btn" onClick={closePaymentModal}>
+                ×
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="medical-modal-body">
+              {/* Patient Info Card */}
+              <div className="patient-info-card">
+                <div className="patient-avatar">
+                  {currentPatient.clientFullname.charAt(0).toUpperCase()}
+                </div>
+                <div className="patient-details">
+                  <h3>{currentPatient.clientFullname}</h3>
+                  <p className="room-info">Xona: {currentPatient.roomNumber}</p>
+                  {modalType === 'payment' ? (
+                    <p className="debt-amount">
+                      Qarz: <span className="debt-value">{formatNumber(calculateDebt(currentPatient))} so'm</span>
+                    </p>
+                  ) : currentPatient?.paidDays?.length > 0 ? (
+                    <div className="debt-card">
+                      {currentPatient.paidDays.map((value, inx) => {
+                        const getDebtDetailsClass = () => {
+                          if (value.price === roomInfo.pricePerDay) {
+                            return 'debt-details debt-details-green';
+                          } else if (value.price === 0) {
+                            return 'debt-details debt-details-red';
+                          } else if (value.price > 0) {
+                            return 'debt-details debt-details-gold';
+                          }
+                          return 'debt-details'; // Fallback class
+                        };
+
+                        return (
+                          <div key={inx} className={getDebtDetailsClass()}>
+                            <span className="date-label">
+                              {value.date}
+                            </span>
+                            <span className="price-label">
+                              {formatNumber(value.price)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="empty-state">No payment records available.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Payment Form */}
+              {modalType === 'payment' ? (
+                <div className="payment-form">
+                  <div className="form-group">
+                    <label className="form-label">To'lov miqdori</label>
+                    <div className="input-wrapper">
+                      <input
+                        type="text"
+                        className="payment-input"
+                        placeholder={`${formatNumber(calculateDebt(currentPatient))} so'm`}
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                      />
+                      <span className="input-currency">so'm</span>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">To'lov turi</label>
+                    <div className="payment-type-selector">
+                      <label className={`payment-option ${paymentType === 'naqt' ? 'selected' : ''}`}>
+                        <input
+                          type="radio"
+                          name="paymentType"
+                          value="naqt"
+                          checked={paymentType === 'naqt'}
+                          onChange={(e) => setPaymentType(e.target.value)}
+                        />
+                        <span className="option-text">💵 Naqd pul</span>
+                      </label>
+                      <label className={`payment-option ${paymentType === 'karta' ? 'selected' : ''}`}>
+                        <input
+                          type="radio"
+                          name="paymentType"
+                          value="karta"
+                          checked={paymentType === 'karta'}
+                          onChange={(e) => setPaymentType(e.target.value)}
+                        />
+                        <span className="option-text">💳 Plastik karta</span>
+                      </label>
+
+                    </div>
+                  </div>
+
+                  <button
+                    className={`payment-submit-btn ${!paymentAmount || isPayForRoom ? 'disabled' : ''}`}
+                    onClick={handlePayment}
+                    disabled={!paymentAmount || isPayForRoom}
+                  >
+                    {isPayForRoom ? (
+                      <>
+                        <div className="loading-spinner"></div>
+                        Jarayon...
+                      </>
+                    ) : (
+                      <>
+                        <FaCheck className="btn-icon" />
+                        To'lovni amalga oshirish
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div className="day-management">
+                  <div className="day-actions">
+                    <button
+                      className="day-action-btn add-day"
+                      onClick={() => handleDayManagement({
+                        type: 'inc',
+                        id: currentPatient._id,
+                      })}
+                    >
+                      {/* //"inc" // yoki "dec" */}
+                      <FaPlus className="btn-icon" />
+                      <span>Kun qo'shish</span>
+                      <small>Davolanish muddatini uzaytirish</small>
+                    </button>
+                    <button
+                      className="day-action-btn remove-day"
+                      onClick={() => handleDayManagement({
+                        type: 'dec',
+                        id: currentPatient._id,
+                      })}
+                    >
+                      <FaMinus className="btn-icon" />
+                      <span>Kun ayirish</span>
+                      <small>Davolanish muddatini qisqartirish</small>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      <div style={{ display: 'none' }}>
+        <ReceiptPrint
+          ref={receiptRef}
+          data={sendPrint}
+          room={roomInfo}
+        />
+      </div>
     </div>
   );
 }

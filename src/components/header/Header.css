@@ -5,7 +5,6 @@
   height: 50px;
   padding: 0 15px 0 0;
   background: linear-gradient(110deg, dodgerblue, #4e4376);
-  color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
@@ -60,7 +59,7 @@
 }
 
 .complex-month-selector {
-  padding: 0.5rem 1rem;
+  padding: 0.3rem 1rem;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   transition: all 0.2s ease;

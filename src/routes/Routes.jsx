@@ -8,6 +8,9 @@ import History from "../pages/reseption/history/Historys";
 import Cabins from "../pages/reseption/Cabins/Cabins";
 import Room from "../pages/reseption/Cabins/room/Room";
 import PatientAddRoomForm from "../pages/reseption/Cabins/patientAddRoom/PatientAddRoomForm";
+import Attendance from "../pages/reseption/attendance/Attendance";
+import ExpenseManager from "../pages/reseption/expense/ExpenseManager";
+import Service from "../pages/reseption/service/Service";
 
 export const routes = [
   {
@@ -61,6 +64,25 @@ export const routes = [
   {
     path: "/addpatient/:id",
     element: <PatientAddRoomForm />,
+    role: ["reception", "director"],
+    private: true,
+  },
+  {
+    path: "/attendance",
+    element: <Attendance />,
+    role: ["reception", "director"],
+    private: true,
+  }
+  ,
+  {
+    path: "/expense",
+    element: <ExpenseManager />,
+    role: ["reception", "director"],
+    private: true,
+  },
+  {
+    path: "/service",
+    element: <Service />,
     role: ["reception", "director"],
     private: true,
   }

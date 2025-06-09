@@ -17,9 +17,21 @@ const Registration = () => {
     const [addPotsents, { isLoading: isAdding }] = useAddPotsentsMutation();
     const [form] = Form.useForm();
     const contentRef = useRef(null);
-
-    // Fix: Correct useState declaration
     const [data, setData] = useState(null);
+
+    // Watch the selected doctorId
+    const selectedDoctorId = Form.useWatch('doctorId', form);
+
+    // Set payment_amount based on selected doctor's admission_price
+    React.useEffect(() => {
+        if (selectedDoctorId && doctors?.innerData) {
+            const selectedDoctor = doctors.innerData.find(doctor => doctor._id === selectedDoctorId);
+            if (selectedDoctor?.admission_price) {
+                const formattedPrice = formatPaymentAmount(selectedDoctor.admission_price.toString());
+                form.setFieldsValue({ payment_amount: formattedPrice });
+            }
+        }
+    }, [selectedDoctorId, doctors, form]);
 
     const reactToPrintFn = useReactToPrint({
         contentRef: contentRef,
@@ -35,14 +47,13 @@ const Registration = () => {
     `
     });
 
-
     const initialValues = {
         doctorId: '',
         firstname: '',
         lastname: '',
         idNumber: '',
         phone: '',
-        address: 'Namangan viloyati',
+        address: '',
         year: '',
         gender: 'erkak',
         paymentType: 'naqt',
@@ -53,10 +64,8 @@ const Registration = () => {
         debtor: false,
     };
 
-    // Handle form submission
     const onFinish = async (values) => {
         try {
-            // Ma'lumotlarni tayyorlash
             const patientData = {
                 ...values,
                 payment_amount: values.payment_amount
@@ -65,39 +74,26 @@ const Registration = () => {
                 phone: `+998${values.phone.replace(/\s/g, '')}`,
             };
 
-            // API chaqiruvi
             const response = await addPotsents(patientData).unwrap();
 
-            // Success bo'lsa data ni set qilish va print qilish
             if (response?.innerData) {
-                // Data ni state ga set qilish
                 setData(response.innerData);
-
-                // Print qilish uchun biroz kutish (DOM update bo'lishi uchun)
                 setTimeout(() => {
                     reactToPrintFn();
                 }, 300);
-
-                // Formani tozalash
                 form.resetFields();
-
-                // Muvaffaqiyat xabari
                 notification.success({
                     message: 'Muvaffaqiyat',
                     description: `Bemor muvaffaqiyatli roʻyxatdan oʻtkazildi! Navbat raqami: ${response?.innerData?.order_number || 'N/A'}`,
                 });
             } else {
-                // Agar response success emas
                 notification.error({
                     message: 'Xatolik',
                     description: 'Ma\'lumotlar saqlashda xatolik yuz berdi.',
                 });
             }
-
         } catch (error) {
             console.error('Registration error:', error);
-
-            // Xatolik xabari
             notification.error({
                 message: 'Xatolik',
                 description: error?.data?.message || 'Xatolik yuz berdi. Iltimos, qayta urinib koʻring.',
@@ -105,7 +101,6 @@ const Registration = () => {
         }
     };
 
-    // Format phone number (e.g., 94 432 44 54)
     const formatPhoneNumber = (value) => {
         const cleaned = value.replace(/\D/g, '');
         if (cleaned.length <= 2) return cleaned;
@@ -114,7 +109,6 @@ const Registration = () => {
         return `${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5, 7)} ${cleaned.slice(7, 9)}`;
     };
 
-    // Format payment amount with thousand separators
     const formatPaymentAmount = (value) => {
         const cleaned = value.replace(/\D/g, '');
         if (!cleaned) return '';
@@ -292,11 +286,8 @@ const Registration = () => {
                         ]}
                     >
                         <Input
+                            readOnly
                             placeholder="50.000"
-                            onChange={(e) => {
-                                const formattedValue = formatPaymentAmount(e.target.value);
-                                form.setFieldsValue({ payment_amount: formattedValue });
-                            }}
                         />
                     </Form.Item>
                 </div>
@@ -318,7 +309,6 @@ const Registration = () => {
                 </Form.Item>
             </Form>
 
-            {/* Print component - data bor bo'lsa ko'rsatiladi */}
             <div style={{ display: "none" }}>
                 <ModelCheck data={data} contentRef={contentRef} />
             </div>

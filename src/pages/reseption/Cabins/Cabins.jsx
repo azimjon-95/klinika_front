@@ -33,7 +33,7 @@ const Cabins = () => {
   const [createRoom, { isLoading: isCreating }] = useCreateRoomMutation();
   const [deleteRoom, { isLoading: isDeleting }] = useDeleteRoomMutation();
   const [closeRoom, { isLoading: isClosing }] = useCloseRoomMutation();
-
+  console.log(rooms)
   // Handle right-click to open modal
   const handleRightClick = (e) => {
     e.preventDefault();
@@ -148,13 +148,50 @@ const Cabins = () => {
     },
     {
       title: "Xona sig'imi",
-      dataIndex: "usersNumber",
-      key: "usersNumber",
-      render: (text) => (
+      render: (_, res) => (
         <div className="room_Box-length">
-          <div>Xona sig'imi</div>
-          <div>
-            <MdOutlineBedroomChild /> {text}
+          <div className="room_Box-cont">
+            {res?.beds?.map((val, inx) => {
+              let bgColor = "";
+              switch (val.status) {
+                case "bo'sh":
+                  bgColor = "green";
+                  break;
+                case "band":
+                  bgColor = "gold";
+                  break;
+                case "toza emas":
+                  bgColor = "red";
+                  break;
+                case "toza":
+                  bgColor = "green";
+                  break;
+                default:
+                  bgColor = "gray";
+              }
+
+              return (
+                <div
+                  key={inx}
+                  style={{
+                    backgroundColor: bgColor,
+                    color: '#fff',
+                    borderRadius: '50%',
+                    fontSize: '12px',
+                    width: '14px',
+                    height: "14px",
+                    textAlign: 'center',
+                    marginTop: "4px"
+                  }}
+                >
+
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
+            <MdOutlineBedroomChild /> {res?.usersNumber}
           </div>
         </div>
       ),
