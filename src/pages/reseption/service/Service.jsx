@@ -77,16 +77,14 @@ function Service() {
     const scrollContainerRef = useRef(null);
 
     // RTK Query hooks
-    // const { data: services = { innerData: [] }, isLoading, error } = useGetServicesQuery();
+    const { data: services = { innerData: [] }, isLoading, error } = useGetServicesQuery();
     const [createService, { isLoading: isCreating }] = useCreateServiceMutation();
     const [updateService, { isLoading: isUpdating }] = useUpdateServiceMutation();
     const [deleteService, { isLoading: isDeleting }] = useDeleteServiceMutation();
     const [addServiceItem, { isLoading: isAddingItem }] = useAddServiceItemMutation();
     const [deleteServiceItem, { isLoading: isDeletingItem }] = useDeleteServiceItemMutation();
     const { data: workers = { innerData: [] } } = useGetWorkersQuery();
-    const services = [];
-    const isLoading = false;
-    const error = false;
+
     // Auto-scroll to bottom when services change
     useEffect(() => {
         if (scrollContainerRef.current) {
@@ -192,6 +190,8 @@ function Service() {
             value: option.value,
         }))
     );
+
+    console.log(services);
 
     return (
         <div className="service-container">
@@ -347,12 +347,10 @@ function Service() {
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <code className="doctor-id">
-                                                        {workers?.innerData?.find((worker) => worker._id === service.doctorId)
-                                                            ? `${workers.innerData.find((worker) => worker._id === service.doctorId).firstName} ${workers.innerData.find((worker) => worker._id === service.doctorId).lastName
-                                                            }`
-                                                            : service.doctorId}
-                                                    </code>
+                                                    <div className="table-cell-content">
+                                                        <FaUserMd style={{ color: '#10b981' }} />
+                                                        {service?.doctorId?.firstName} {service?.doctorId?.lastName}
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     <button onClick={() => toggleRow(service._id)} className="toggle-button">
