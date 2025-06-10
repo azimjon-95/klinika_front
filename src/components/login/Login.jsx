@@ -1,11 +1,8 @@
-
-// Login.js - Enhanced login component with better UX
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { FaUser } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { PiLockKeyFill } from "react-icons/pi";
-import { message } from "antd";
 import { AiFillEyeInvisible, AiFillEye } from "react-icons/ai";
 import { setCredentials } from "../../context/actions/authSlice";
 import axios from "../../api";
@@ -13,33 +10,16 @@ import bg from "../../assets/bg.svg";
 import wave from "../../assets/wave.png";
 import imgDoc from "../../assets/singleImg.png";
 import "./login.css";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated, role } = useSelector((state) => state.auth);
 
   const [eye, setEye] = useState(false);
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && role) {
-      const getDefaultRoute = (userRole) => {
-        const roleRoutes = {
-          'admin': '/admin',
-          'director': '/director',
-          'doctor': '/doctor',
-          'nurse': '/nurse'
-        };
-        return roleRoutes[userRole] || '/dashboard';
-      };
-
-      navigate(getDefaultRoute(role), { replace: true });
-    }
-  }, [isAuthenticated, role, navigate]);
 
   const clearForm = () => {
     setLogin("");
@@ -47,21 +27,67 @@ const Login = () => {
     setEye(false);
   };
 
-  const getDefaultRoute = (userRole) => {
-    const roleRoutes = {
-      'director': '/director',
-      'doctor': '/doctor',
-      'reception': '/reception'
-    };
-    return roleRoutes[userRole] || '/dashboard';
-  };
+  // const onFinishHandler = async (e) => {
+  //   e.preventDefault();
+  //   toast.success("Tizimga kirish...");
+  //   if (!login.trim() || !password.trim()) {
+  //     return toast.error("Login yoki parol kiriting!", {
+  //       autoClose: 3000,
+  //     });
+  //   }
+
+  //   setLoading(true);
+
+  //   try {
+  //     const res = await axios.post("/admin/login", {
+  //       login: login.trim(),
+  //       password: password.trim(),
+  //     });
+
+  //     const { message: successMessage, innerData } = res.data;
+
+  //     // Store doctor name for backward compatibility
+  //     const doctorName = `${innerData?.admin.firstName || ""} ${
+  //       innerData?.admin.lastName || ""
+  //     }`.trim();
+  //     localStorage.setItem("doctor", doctorName);
+  //     localStorage.setItem(
+  //       "permissions",
+  //       JSON.stringify(innerData?.admin.permissions || [])
+  //     );
+
+  //     // Dispatch credentials to Redux store
+  //     dispatch(
+  //       setCredentials({
+  //         adminFullname: doctorName,
+  //         role: innerData?.admin.role,
+  //         token: innerData?.token,
+  //       })
+  //     );
+
+  //     toast.success("Muvaffaqiyatli tizimga kirdingiz!", {
+  //       autoClose: 3000,
+  //     });
+
+  //     clearForm();
+  //   } catch (error) {
+  //     alert("Login yoki parol xato!");
+  //     // toast.error(error.response.data?.message);
+  //     toast.error("Login yoki parol xato!", {
+  //       autoClose: 3000,
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const onFinishHandler = async (e) => {
     e.preventDefault();
 
     if (!login.trim() || !password.trim()) {
-      message.warning("Login va parolni kiriting!");
-      return;
+      return toast.error("Login yoki parol kiriting!", {
+        autoClose: 3000,
+      });
     }
 
     setLoading(true);
@@ -69,40 +95,44 @@ const Login = () => {
     try {
       const res = await axios.post("/admin/login", {
         login: login.trim(),
-        password: password.trim()
+        password: password.trim(),
       });
 
       const { message: successMessage, innerData } = res.data;
 
-      // Store doctor name for backward compatibility
-      const doctorName = `${innerData?.admin.firstName || ''} ${innerData?.admin.lastName || ''}`.trim();
+      const doctorName = `${innerData?.admin.firstName || ""} ${
+        innerData?.admin.lastName || ""
+      }`.trim();
       localStorage.setItem("doctor", doctorName);
+      localStorage.setItem(
+        "permissions",
+        JSON.stringify(innerData?.admin.permissions || [])
+      );
 
-      // Dispatch credentials to Redux store
-      dispatch(setCredentials({
-        adminFullname: doctorName,
-        role: innerData?.admin.role,
-        token: innerData?.token
-      }));
+      navigate("/");
 
-      message.success(successMessage || "Muvaffaqiyatli tizimga kirdingiz!");
+      dispatch(
+        setCredentials({
+          adminFullname: doctorName,
+          role: innerData?.admin.role,
+          token: innerData?.token,
+        })
+      );
 
-      // Clear form
+      toast.success("Muvaffaqiyatli tizimga kirdingiz!", {
+        autoClose: 3000,
+      });
+
       clearForm();
-
-      // Navigate to appropriate route based on role
-      const defaultRoute = getDefaultRoute(innerData?.admin.role);
-      navigate(defaultRoute, { replace: true });
-
+      // navigate kerak bo‘lsa shu yerga yozing
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Tizimga kirishda xatolik yuz berdi!";
-      message.error(errorMessage);
-      console.error("Login error:", error);
+      toast.error("Login yoki parol xato!", {
+        autoClose: 3000,
+      });
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="Loginbodylog">
       <img className="wave" src={wave} alt="kirish" />
@@ -178,5 +208,3 @@ const Login = () => {
 };
 
 export default Login;
-
-

@@ -2,20 +2,19 @@ import React, { useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 import "./Layout.css";
-import { menuItems } from "../../utils/SidebarMenu";
 import Sidebar from "../sidebar/Sidebar";
 import Header from "../header/Header";
 
 function Layout() {
   const navigate = useNavigate();
-  const role = localStorage.getItem("role");
+  const permissions = localStorage.getItem("permissions");
   const location = useLocation();
 
   useEffect(() => {
-    if (!role || !menuItems[role]) {
+    if (!permissions) {
       navigate("/login");
     }
-  }, [role, navigate]);
+  }, [permissions, navigate]);
 
   const isDirectorPath = location.pathname === '/director' || "/expense";
 

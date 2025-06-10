@@ -33,7 +33,6 @@ const Cabins = () => {
   const [createRoom, { isLoading: isCreating }] = useCreateRoomMutation();
   const [deleteRoom, { isLoading: isDeleting }] = useDeleteRoomMutation();
   const [closeRoom, { isLoading: isClosing }] = useCloseRoomMutation();
-  console.log(rooms)
   // Handle right-click to open modal
   const handleRightClick = (e) => {
     e.preventDefault();

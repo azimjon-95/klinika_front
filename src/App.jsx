@@ -3,12 +3,17 @@ import React, { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Layout from "./components/layout/Layout";
-import PrivateRoute from "./auth/PrivateRoute";
+// import PrivateRoute from "./auth/PrivateRoute";
 import Login from "./components/login/Login";
 import { routes } from "./routes/Routes";
+import { toast, ToastContainer } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
-  const [isOnline, setIsOnline] = useState(navigator.onLine ? "Online" : "Offline");
+  const [isOnline, setIsOnline] = useState(
+    navigator.onLine ? "Online" : "Offline"
+  );
   const { token, role } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -34,19 +39,20 @@ function App() {
   }, []);
 
   // Get default route based on user role
-  const getDefaultRoute = (userRole) => {
-    const roleRoutes = {
-      'director': '/director',
-      'doctor': '/doctor',
-      'reception': '/reception'
-    };
-    return roleRoutes[userRole] || '/dashboard';
-  };
+  // const getDefaultRoute = (userRole) => {
+  //   const roleRoutes = {
+  //     'director': '/director',
+  //     'doctor': '/doctor',
+  //     'reception': '/reception'
+  //   };
+  //   return roleRoutes[userRole] || '/dashboard';
+  // };
 
   // If user is authenticated, show main app
   if (token && role) {
     return (
       <div className="app">
+        <ToastContainer />
         {!isOnline && (
           <p
             style={{
@@ -56,7 +62,7 @@ function App() {
               margin: 0,
               textAlign: "center",
               fontSize: "14px",
-              fontWeight: "500"
+              fontWeight: "500",
             }}
             className="isOnline"
           >
@@ -66,38 +72,42 @@ function App() {
 
         <Routes>
           <Route element={<Layout />}>
-            {routes.map(({ path, element, private: isPrivate, role: requiredRole }) => (
-              <Route
-                key={path}
-                path={path}
-                element={
-                  isPrivate ? (
-                    <PrivateRoute role={requiredRole}>{element}</PrivateRoute>
-                  ) : (
+            {routes.map(
+              ({ path, element, private: isPrivate, role: requiredRole }) => (
+                <Route
+                  key={path}
+                  path={path}
+                  element={
                     element
-                  )
-                }
-              />
-            ))}
+                    // isPrivate ? (
+                    //   <PrivateRoute role={requiredRole}>{element}</PrivateRoute>
+                    // ) : (
+                    //   element
+                    // )
+                  }
+                />
+              )
+            )}
           </Route>
 
           {/* Redirect login attempts to user's default route */}
-          <Route
+          {/* <Route
             path="/login"
             element={<Navigate to={getDefaultRoute(role)} replace />}
-          />
+          /> */}
 
           {/* Redirect root to user's default route */}
-          <Route
+          {/* <Route
             path="/"
             element={<Navigate to={getDefaultRoute(role)} replace />}
-          />
+          /> */}
 
           {/* Catch all other routes and redirect to default */}
-          <Route
+          {/* <Route
             path="*"
             element={<Navigate to={getDefaultRoute(role)} replace />}
           />
+          */}
         </Routes>
       </div>
     );
@@ -115,5 +125,3 @@ function App() {
 }
 
 export default App;
-
-

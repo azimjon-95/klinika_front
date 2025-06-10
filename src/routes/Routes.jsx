@@ -14,76 +14,77 @@ import Service from "../pages/reseption/service/Service";
 
 export const routes = [
   {
-    path: "/doctor",
+    // path: "/doctor",
+    path: "/",
     element: <Checkin />,
-    role: ["doctor", "director"],
+    // role: ["doctor", "director"],
     private: true,
   },
   {
     path: "/reception",
     element: <Registration />,
-    role: ["reception", "director"],
+    // role: ["reception", "director"],
     private: true,
   },
   {
     path: "/director",
     element: <Dashboard />,
-    role: ["director"],
+    // role: ["director"],
     private: true,
   },
   {
     path: "/workers",
     element: <Workers />,
-    role: ["director"],
+    // role: ["director"],
     private: true,
   },
   {
     path: "/setting",
     element: <ClinicManagements />,
-    role: ["director"],
+    // role: ["director"],
     private: true,
   },
   {
     path: "/history",
     element: <History />,
-    role: ["reception", "director"],
+    // role: ["reception", "director"],
     private: true,
   },
   {
     path: "/cabins",
     element: <Cabins />,
-    role: ["reception", "director"],
+    // role: ["reception", "director"],
     private: true,
   },
   {
     path: "/room/:id",
     element: <Room />,
-    role: ["reception", "director"],
+    // role: ["reception", "director"],
     private: true,
   },
   {
     path: "/addpatient/:id",
     element: <PatientAddRoomForm />,
-    role: ["reception", "director"],
+    // role: ["reception", "director"],
     private: true,
   },
   {
     path: "/attendance",
     element: <Attendance />,
-    role: ["reception", "director"],
+    // role: ["reception", "director"],
     private: true,
   }
   ,
   {
     path: "/expense",
     element: <ExpenseManager />,
-    role: ["reception", "director"],
+    // role: ["reception", "director"],
     private: true,
   },
   {
     path: "/service",
     element: <Service />,
-    role: ["reception", "director"],
+    // role: ["reception", "director"],
     private: true,
   }
 ];
