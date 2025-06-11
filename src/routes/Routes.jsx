@@ -11,6 +11,7 @@ import PatientAddRoomForm from "../pages/reseption/Cabins/patientAddRoom/Patient
 import Attendance from "../pages/reseption/attendance/Attendance";
 import ExpenseManager from "../pages/reseption/expense/ExpenseManager";
 import Service from "../pages/reseption/service/Service";
+import NightShiftScheduler from "../pages/reseption/nightShift/NightShiftScheduler";
 
 export const routes = [
   {
@@ -83,6 +84,12 @@ export const routes = [
   {
     path: "/service",
     element: <Service />,
+    role: ["reception", "director"],
+    private: true,
+  },
+  {
+    path: "/nightShift",
+    element: <NightShiftScheduler />,
     role: ["reception", "director"],
     private: true,
   }

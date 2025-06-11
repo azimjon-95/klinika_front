@@ -40,6 +40,18 @@ export const doctorApi = api.injectEndpoints({
             query: () => '/admin/for_reception',
             providesTags: ['Potsents'],
         }),
+
+
+
+        //   const response = await axios.put(`/api/admins/${adminId}/servicesId`, { servicesId });
+        updateServicesId: builder.mutation({
+            query: ({ adminId, servicesId }) => ({
+                url: `/admin/${adminId}/servicesId`,
+                method: 'PUT',
+                body: { servicesId },
+            }),
+        })
+
     }),
 });
 
@@ -50,4 +62,5 @@ export const {
     useDeleteWorkerMutation,
     useGetByIdWorkerMutation,
     useGetPotsentsLengthQuery,
+    useUpdateServicesIdMutation
 } = doctorApi;

@@ -9,7 +9,10 @@ import {
   FaBed,
   FaCalendarCheck, FaMoneyBillWave
 } from "react-icons/fa";
-import { MdDashboard } from "react-icons/md";
+import {
+  Moon
+} from 'lucide-react';
+import { MdOutlineMedicalServices, MdDashboard } from "react-icons/md";
 import { BsPeopleFill } from "react-icons/bs";
 
 export const menuItems = {
@@ -45,6 +48,16 @@ export const menuItems = {
       icon: <FaCalendarCheck size={20} />, // Changed to FaCalendarCheck for attendance
       path: "/attendance",
       label: "Davomat",
+    },
+    {
+      icon: <MdOutlineMedicalServices size={20} />, // Changed to FaCalendarCheck for attendance
+      path: "/service",
+      label: "Xizmatlar",
+    },
+    {
+      icon: <Moon size={20} />, // Changed to FaCalendarCheck for attendance
+      path: "/nightShift",
+      label: "Smena Boshqaruvi",
     },
   ],
   director: [
@@ -91,6 +104,16 @@ export const menuItems = {
           icon: <FaCalendarCheck size={20} />, // Changed to FaCalendarCheck for attendance
           path: "/attendance",
           label: "Davomat",
+        },
+        {
+          icon: <MdOutlineMedicalServices size={20} />, // Changed to FaCalendarCheck for attendance
+          path: "/service",
+          label: "Xizmatlar",
+        },
+        {
+          icon: <Moon size={20} />, // Changed to FaCalendarCheck for attendance
+          path: "/nightShift",
+          label: "Smena Boshqaruvi",
         },
       ],
     },

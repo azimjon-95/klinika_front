@@ -27,6 +27,7 @@ const Workers = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { data: workers, isLoading, error } = useGetWorkersQuery();
+    console.log(workers);
     const [addWorker] = useAddWorkerMutation();
     const [updateWorker] = useUpdateWorkerMutation();
     const [deleteWorker] = useDeleteWorkerMutation();
@@ -198,12 +199,36 @@ const Workers = () => {
             key: 'percentage_from_admissions',
             render: (percentage) => `${percentage}%`,
         }] : []),
+
         ...(activeTab !== '1' && activeTab !== '3' && activeTab !== '4' ? [{
             title: 'Qabul narxi',
-            dataIndex: 'admission_price',
-            key: 'admission_price',
-            render: (admission_price) => `${NumberFormat(admission_price || 0)} so'm`,
+            render: (record) => {
+                // Check if servicesId exists and has services
+                if (record.servicesId && record.servicesId.services && record.servicesId.services.length > 0) {
+                    return (
+                        <div style={{ fontSize: '12px', textWrap: "nowrap" }}>
+                            {record.servicesId.services.map((service, index) => (
+                                <div key={index}>
+                                    {service.name}: {NumberFormat(service.price || 0)} so'm
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+                return (
+                    <button
+                        className="btn-tn"
+                        onClick={() => {
+                            // Replace '/select-services' with your desired route
+                            window.location.href = '/service';
+                        }}
+                    >
+                        Hizmatlarni tanlang
+                    </button>
+                );
+            },
         }] : []),
+
         { title: 'Login', dataIndex: 'login', key: 'login' },
         { title: 'Telefon', dataIndex: 'phone', key: 'phone' },
         {
