@@ -5,8 +5,7 @@ import { useGetClinicsQuery } from '../../../../../context/clinicApi'
 import './ReceiptPrinter.css';
 
 const ReceiptPrint = forwardRef(({ data, room }, ref) => {
-  console.log(room);
-  console.log(data.currentPatient);
+
   const patient = data.currentPatient || {};
   const doctor = patient.doctorId || {};
 

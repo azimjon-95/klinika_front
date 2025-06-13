@@ -19,19 +19,24 @@ const Registration = () => {
     const contentRef = useRef(null);
     const [data, setData] = useState(null);
 
-    // Watch the selected doctorId
+    // Watch the selected doctorId and services
     const selectedDoctorId = Form.useWatch('doctorId', form);
+    const selectedServices = Form.useWatch('services', form);
 
-    // Set payment_amount based on selected doctor's admission_price
+    // Calculate payment_amount based on selected services
     React.useEffect(() => {
-        if (selectedDoctorId && doctors?.innerData) {
-            const selectedDoctor = doctors.innerData.find(doctor => doctor._id === selectedDoctorId);
-            if (selectedDoctor?.admission_price) {
-                const formattedPrice = formatPaymentAmount(selectedDoctor.admission_price.toString());
-                form.setFieldsValue({ payment_amount: formattedPrice });
-            }
+        if (selectedServices && selectedServices.length > 0) {
+            const totalPrice = selectedServices.reduce((total, service) => {
+                // Parse service if it's a JSON string, otherwise use directly
+                const serviceObj = typeof service === 'string' ? JSON.parse(service) : service;
+                return total + (serviceObj.price || 0);
+            }, 0);
+            const formattedPrice = formatPaymentAmount(totalPrice.toString());
+            form.setFieldsValue({ payment_amount: formattedPrice });
+        } else {
+            form.setFieldsValue({ payment_amount: '' });
         }
-    }, [selectedDoctorId, doctors, form]);
+    }, [selectedServices, form]);
 
     const reactToPrintFn = useReactToPrint({
         contentRef: contentRef,
@@ -49,6 +54,7 @@ const Registration = () => {
 
     const initialValues = {
         doctorId: '',
+        services: [],
         firstname: '',
         lastname: '',
         idNumber: '',
@@ -66,18 +72,24 @@ const Registration = () => {
 
     const onFinish = async (values) => {
         try {
+            const cleanedServices = values.services.map(service => {
+                return typeof service === 'string' ? JSON.parse(service) : service;
+            });
+
             const patientData = {
                 ...values,
+                services: cleanedServices, // Use cleaned services array
                 payment_amount: values.payment_amount
                     ? Number(values.payment_amount.replace(/\./g, ''))
                     : 0,
                 phone: `+998${values.phone.replace(/\s/g, '')}`,
             };
-
             const response = await addPotsents(patientData).unwrap();
 
             if (response?.innerData) {
-                setData(response.innerData);
+                setData({
+                    response: response.innerData, services: patientData.services,
+                });
                 setTimeout(() => {
                     reactToPrintFn();
                 }, 300);
@@ -115,6 +127,13 @@ const Registration = () => {
         return Number(cleaned).toLocaleString('uz-UZ', { minimumFractionDigits: 0 }).replace(/,/g, '.');
     };
 
+    // Get services for the selected doctor
+    const getDoctorServices = () => {
+        if (!selectedDoctorId || !doctors?.innerData) return [];
+        const selectedDoctor = doctors.innerData.find(doctor => doctor._id === selectedDoctorId);
+        return selectedDoctor?.services || [];
+    };
+
     return (
         <div className="registration-container">
             <Title level={4} className="registration-title">
@@ -135,7 +154,7 @@ const Registration = () => {
                 >
                     {doctorsLoading ? (
                         <div className="loading-spinner">
-                            <Spin size="small" />
+                            <Spin size="medium" />
                         </div>
                     ) : (
                         <Select
@@ -158,6 +177,38 @@ const Registration = () => {
                             )}
                         </Select>
                     )}
+                </Form.Item>
+
+                <Form.Item
+                    name="services"
+                    label="Xizmatlarni tanlang"
+                    rules={[{ required: true, message: 'Iltimos, kamida bitta xizmat tanlang!' }]}
+                >
+                    <Select
+                        mode="multiple"
+                        placeholder="Xizmatlarni tanlang"
+                        disabled={!selectedDoctorId}
+                        showSearch
+                        optionFilterProp="children"
+                        filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                        optionLabelProp="label"
+                    >
+                        {getDoctorServices().length > 0 ? (
+                            getDoctorServices().map((service) => (
+                                <Option
+                                    key={service.name}
+                                    value={JSON.stringify({ name: service.name, price: service.price })}
+                                    label={`${service.name} (${formatPaymentAmount(service.price.toString())} soʻm)`}
+                                >
+                                    {service.name} ({formatPaymentAmount(service.price.toString())} soʻm)
+                                </Option>
+                            ))
+                        ) : (
+                            <Option disabled value="">
+                                Xizmatlar topilmadi
+                            </Option>
+                        )}
+                    </Select>
                 </Form.Item>
 
                 <div className="form-row">

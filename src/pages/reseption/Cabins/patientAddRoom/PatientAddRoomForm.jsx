@@ -5,8 +5,9 @@ import { useAddPatientToRoomMutation } from '../../../../context/roomApi';
 import { useGetWorkersQuery } from '../../../../context/doctorApi';
 import { User, Phone, MapPin, ChevronLeft, Check, Home, Edit2 } from "lucide-react";
 import { useSelector } from 'react-redux';
-import { message, Input, Spin, Select, Modal } from "antd";
-import "antd/dist/reset.css";
+import { Input, Spin, Select, Modal } from "antd";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import "./style.css";
 
 const { Option } = Select;
@@ -31,16 +32,15 @@ const PatientAddRoomForm = () => {
     const filteredDoctors = doctors?.innerData?.filter(doctor => doctor.role === "doctor") || [];
 
     useEffect(() => {
-        message.config({
-            top: 80,
-            duration: 3,
-            maxCount: 3,
-        });
-    }, []);
-
-    useEffect(() => {
         if (isError) {
-            message.error(`Ma'lumotlarni olishda xatolik: ${error?.message || "Noma'lum xatolik"}`, 3);
+            toast.error(`Ma'lumotlarni olishda xatolik: ${error?.message || "Noma'lum xatolik"}`, {
+                position: "top-center",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
         }
     }, [isError, error]);
 
@@ -73,30 +73,45 @@ const PatientAddRoomForm = () => {
 
     const handleSaveIdNumber = async (patientId) => {
         if (!editIdNumber.trim()) {
-            message.warning("ID Raqam bo'sh bo'lmasligi kerak!", 3);
+            toast.warning("ID Raqam bo'sh bo'lmasligi kerak!", {
+                position: "top-center",
+                autoClose: 3000,
+            });
             return;
         }
 
         try {
             await updatePatient({ id: patientId, idNumber: editIdNumber }).unwrap();
-            message.success("ID Raqam muvaffaqiyatli yangilandi!", 3);
+            toast.success("ID Raqam muvaffaqiyatli yangilandi!", {
+                position: "top-center",
+                autoClose: 3000,
+            });
             setIsEditingId(null);
             setEditIdNumber("");
         } catch (error) {
             console.error("Error updating ID Number:", error);
-            message.error("ID Raqamni yangilashda xatolik yuz berdi!", 3);
+            toast.error(error.data.message || "ID Raqamni yangilashda xatolik yuz berdi!", {
+                position: "top-center",
+                autoClose: 3000,
+            });
         }
     };
 
     const handleSubmit = async (patient, days) => {
         if (!patient || !id || !days || !selectedDoctor) {
-            message.warning("Iltimos, barcha maydonlarni to'ldiring, shu jumladan shifokor!", 3);
+            toast.warning("Iltimos, barcha maydonlarni to'ldiring, shu jumladan shifokor!", {
+                position: "top-center",
+                autoClose: 3000,
+            });
             return;
         }
 
         const res = patients.find(p => p._id === patient._id);
         if (!res.idNumber) {
-            message.warning("Bemorni joylashtirish uchun ID Raqam talab qilinadi!", 3);
+            toast.warning("Bemorni joylashtirish uchun ID Raqam talab qilinadi!", {
+                position: "top-center",
+                autoClose: 3000,
+            });
             return;
         }
 
@@ -108,7 +123,10 @@ const PatientAddRoomForm = () => {
 
         try {
             await addPatientToRoom({ id, ...assignmentData }).unwrap();
-            message.success("Bemor xonaga muvaffaqiyatli joylashtirildi!", 3);
+            toast.success("Bemor xonaga muvaffaqiyatli joylashtirildi!", {
+                position: "top-center",
+                autoClose: 3000,
+            });
             navigate(`/room/${id}`);
             setSelectedPatient(null);
             setSelectedRoom(null);
@@ -117,7 +135,10 @@ const PatientAddRoomForm = () => {
             setIsModalVisible(false);
         } catch (error) {
             console.error("Error assigning patient to room:", error);
-            message.error("Xonaga joylashtirishda xatolik yuz berdi!", 3);
+            toast.error(error.data.message || "Xonaga joylashtirishda xatolik yuz berdi!", {
+                position: "top-center",
+                autoClose: 3000,
+            });
         }
     };
 
@@ -136,6 +157,18 @@ const PatientAddRoomForm = () => {
 
     return (
         <div className="PatientAddRoomForm-container">
+            <ToastContainer
+                position="top-center"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
             <div className="PatientAddRoomForm-card">
                 <div className="PatientAddRoomForm-header">
                     <button

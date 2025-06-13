@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Tabs, Button, Table, Popconfirm, Modal, Form, Input, Select, DatePicker, message } from 'antd';
 import { useSelector } from 'react-redux';
 import ReactSelect from 'react-select';
+import { useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import {
     useGetWorkersQuery,
@@ -25,13 +26,13 @@ const Workers = () => {
     const [updateForm] = Form.useForm();
     const [submitError, setSubmitError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const navigate = useNavigate();
     const { data: workers, isLoading, error } = useGetWorkersQuery();
-    console.log(workers);
     const [addWorker] = useAddWorkerMutation();
     const [updateWorker] = useUpdateWorkerMutation();
     const [deleteWorker] = useDeleteWorkerMutation();
     const { searchQuery } = useSelector((state) => state.search);
+    console.log(workers);
 
     // Group workers by role for separate tabs
     const transformedWorkers = workers?.innerData?.map((worker) => ({
@@ -154,7 +155,6 @@ const Workers = () => {
             message.error(err.data?.message || "Yangilashda xato yuz berdi");
         }
     };
-    console.log(activeTab);
 
     const columns = [
         { title: 'Ism', dataIndex: 'firstName', key: 'firstName' },
@@ -181,25 +181,20 @@ const Workers = () => {
             key: 'specialization',
             render: (specialization) => capitalizeFirstLetter(specialization || '-'),
         }] : []),
+        // {
+        //     title: 'Oylik turi',
+        //     dataIndex: 'salary_type',
+        //     key: 'salary_type',
+        //     render: (salary_type) => (salary_type === 'fixed' ? 'Belgilangan' : 'Foizli'),
+        // },
         {
-            title: 'Oylik turi',
-            dataIndex: 'salary_type',
-            key: 'salary_type',
-            render: (salary_type) => (salary_type === 'fixed' ? 'Belgilangan' : 'Foizli'),
-        },
-        {
-            title: 'Oylik maosh',
-            dataIndex: 'salary_per_month',
+            title: 'Oylik maosh / %',
             key: 'salary_per_month',
-            render: (salary_per_month) => `${NumberFormat(salary_per_month)} so'm`,
+            render: (_, salary) => salary?.salary_type === 'fixed' ?
+                <span style={{ textWrap: "nowrap" }}>{NumberFormat(salary?.salary_per_month || 0)} so'm</span>
+                :
+                <span style={{ textWrap: "nowrap" }}>{salary?.percentage_from_admissions}%</span>
         },
-        ...(activeTab !== '1' && activeTab !== '3' && activeTab !== '4' ? [{
-            title: 'Qabul foizi',
-            dataIndex: 'percentage_from_admissions',
-            key: 'percentage_from_admissions',
-            render: (percentage) => `${percentage}%`,
-        }] : []),
-
         ...(activeTab !== '1' && activeTab !== '3' && activeTab !== '4' ? [{
             title: 'Qabul narxi',
             render: (record) => {
@@ -229,6 +224,34 @@ const Workers = () => {
             },
         }] : []),
 
+        {
+            title: 'Xona raqami',
+            dataIndex: 'roomId',
+            key: 'roomId',
+            align: "center",
+            render: (_, roomId) =>
+                roomId?.roomId ? (
+                    roomId?.roomId?.roomNumber
+                ) : (
+                    <button
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#1890ff', // Ant Design's default blue for links
+                            cursor: 'pointer',
+                            padding: 0,
+                            fontSize: '14px',
+                            textDecoration: 'underline',
+                        }}
+                        onClick={() => {
+                            // Add your click handler logic here
+                            navigate('/cabins?2')
+                        }}
+                    >
+                        Xona tanlash
+                    </button>
+                ),
+        },
         { title: 'Login', dataIndex: 'login', key: 'login' },
         { title: 'Telefon', dataIndex: 'phone', key: 'phone' },
         {

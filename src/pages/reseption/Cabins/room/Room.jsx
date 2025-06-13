@@ -82,7 +82,6 @@ function Room() {
   const exitRoom = useCallback(async (record) => {
     try {
       if (!id || !record.clientMongooseId) throw new Error("Kerakli ma'lumotlar mavjud emas");
-      console.log(record.clientMongooseId);
       await removePatientFromRoom({ id, patientId: record._id }).unwrap();
       message.success(`${record.clientFullname} xonadan muvaffaqiyatli chiqarildi!`);
 

@@ -50,8 +50,15 @@ export const doctorApi = api.injectEndpoints({
                 method: 'PUT',
                 body: { servicesId },
             }),
-        })
-
+        }),
+        updateRoomId: builder.mutation({
+            query: ({ adminId, roomId }) => ({
+                url: `/admins/${adminId}/room`,
+                method: 'PUT',
+                body: { roomId },
+            }),
+            invalidatesTags: ['Workers'], // Invalidate cache for admins to refresh data
+        }),
     }),
 });
 
@@ -62,5 +69,6 @@ export const {
     useDeleteWorkerMutation,
     useGetByIdWorkerMutation,
     useGetPotsentsLengthQuery,
-    useUpdateServicesIdMutation
+    useUpdateServicesIdMutation,
+    useUpdateRoomIdMutation
 } = doctorApi;

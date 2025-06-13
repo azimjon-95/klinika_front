@@ -99,6 +99,17 @@ export const roomApi = api.injectEndpoints({
             }),
             invalidatesTags: [{ type: "Room", id: "STORIES" }],
         }),
+        updateRoomCleanStatus: builder.mutation({
+            query: ({ id, isCleaned }) => ({
+                url: `/roomStatus/update/${id}`,
+                method: "PUT",
+                body: { isCleaned },
+            }),
+            invalidatesTags: (result, error, { id }) => [
+                { type: "Room", id },
+                { type: "Room", id: "LIST" },
+            ],
+        }),
     }),
 });
 
@@ -113,5 +124,6 @@ export const {
     useAddPatientToRoomMutation,
     useRemovePatientFromRoomMutation,
     usePayForRoomMutation,
-    useChangeTreatingDaysMutation
+    useChangeTreatingDaysMutation,
+    useUpdateRoomCleanStatusMutation
 } = roomApi;

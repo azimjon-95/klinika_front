@@ -10,13 +10,12 @@ import ModelCheck from '../../../components/check/modelCheck/ModelCheck';
 const { Title } = Typography;
 
 const NewRegistrations = () => {
-    const { data: allStories, isLoading: isLoadingAllStories, isError } = useGetAllTodaysQuery();
+    const { data: allStories, isLoading: isLoadingAllStories } = useGetAllTodaysQuery();
     const contentRef = useRef(null);
     const [data, setData] = useState(null);
-    // Print function for individual row
 
     const reactToPrintFn = useReactToPrint({
-        contentRef: contentRef,
+        contentRef,
         pageStyle: `
       @page {
         size: 80mm auto;
@@ -28,67 +27,93 @@ const NewRegistrations = () => {
       }
     `
     });
+
     const handleRowPrint = (record) => {
 
+        // Validate record
+        if (!record || !record.patientId || !record.doctorId) {
+            console.error('Invalid record:', record);
+            return;
+        }
+
         const story = {
-            doctor: {
-                specialization: record?.doctorId?.specialization,
-                firstname: record?.doctorId?.firstName,
-                lastname: record?.doctorId?.lastName,
-                phone: record?.doctorId?.phone || " ",
-                createdAt: record?.doctorId?.createdAt,
-                admission_price: record?.doctorId?.admission_price
+            response: {
+                doctor: {
+                    specialization: record.doctorId?.specialization || 'N/A',
+                    firstName: record.doctorId?.firstName || 'N/A',
+                    lastName: record.doctorId?.lastName || 'N/A',
+                    phone: record.doctorId?.phone || 'N/A'
+                },
+                patient: {
+                    firstname: record.patientId?.firstname || 'N/A',
+                    lastname: record.patientId?.lastname || 'N/A',
+                    phone: record.patientId?.phone || 'N/A',
+                    idNumber: record.patientId?.idNumber || 'N/A',
+                    address: record.patientId?.address || 'N/A',
+                    paymentType: record.paymentType || 'N/A',
+                    order_number: record.order_number || 0
+                },
+                created: record.createdAt || new Date().toISOString(),
+                order_number: record.order_number || 0
             },
-            patient: {
-                firstname: record?.patientId?.firstname,
-                lastname: record?.patientId?.lastname,
-                paymentType: record?.paymentType,
-                order_number: record?.order_number
-            }
-        }
+            services: record.services?.map(service => ({
+                name: service.name,
+                price: service.price
+            })) || []
+        };
 
-        // Redux store'ga ma'lumot yuborish
-        if (record) {
-            setData(story)
-            // // Print qilish uchun biroz kutish (DOM update bo'lishi uchun)
-            setTimeout(() => {
-                reactToPrintFn();
-            }, 300);
-        }
 
+        setData(story);
+        setTimeout(() => {
+            reactToPrintFn();
+        }, 300);
     };
 
-    // Table columns configuration
+    // Table columns configuration (unchanged from your latest version)
     const columns = [
         {
             title: 'Navbati',
             dataIndex: 'order_number',
             key: 'order_number',
-            align: "center"
+            align: 'center',
+            width: 80,
         },
         {
             title: 'Bemor ismi',
             key: 'patient_name',
             render: (_, record) => `${record.patientId.firstname} ${record.patientId.lastname}`,
+            width: 150,
         },
         {
-            title: 'Telefon',
-            dataIndex: ['patientId', 'phone'],
-            key: 'phone',
-            render: (phone) => `${PhoneNumberFormat(phone)}`,
+            title: 'Qabul',
+            dataIndex: ['doctorId', 'specialization'],
+            key: 'specialization',
+            render: (phone) => capitalizeFirstLetter(phone),
+            width: 120,
         },
         {
-            title: 'To\'lov turi',
-            dataIndex: 'paymentType',
-            key: 'paymentType',
-            render: (paymentType) => `${capitalizeFirstLetter(paymentType)}`
+            title: 'Xizmatlar',
+            key: 'services',
+            render: (_, record) => {
+                const serviceNames = record?.services?.map(service => service.name).join(', ') || 'Xizmatlar yoʻq';
+
+                return serviceNames;
+            },
+            width: 200,
         },
         {
             title: 'To\'lov summasi',
             dataIndex: 'payment_amount',
             key: 'payment_amount',
-            render: (amount) => `${amount.toLocaleString()} so'm`,
+            render: (amount) => `${amount.toLocaleString()} soʻm`,
             width: 120,
+        },
+        {
+            title: 'To\'lov turi',
+            dataIndex: 'paymentType',
+            key: 'paymentType',
+            render: (paymentType) => capitalizeFirstLetter(paymentType),
+            width: 100,
         },
         {
             title: 'Soat',
@@ -100,11 +125,12 @@ const NewRegistrations = () => {
                 const minutes = String(d.getMinutes()).padStart(2, '0');
                 return `${hours}:${minutes}`;
             },
+            width: 80,
         },
         {
             title: 'Chop etish',
             key: 'actions',
-            align: "center",
+            align: 'center',
             render: (_, record) => (
                 <Button
                     icon={<PrinterOutlined />}
@@ -113,37 +139,24 @@ const NewRegistrations = () => {
                     className="no-print"
                 />
             ),
+            width: 80,
         },
     ];
+
+    // Table styles and other components remain unchanged
     const tableStyles = `
         @media print {
-            .no-print {
-                display: none;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            th, td {
-                border: 1px solid #ddd;
-                padding: 6px;
-            }
-            th {
-                background-color: #f2f2f2;
-            }
+            .no-print { display: none; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ddd; padding: 6px; }
+            th { background-color: #f2f2f2; }
         }
-        .ant-table-tbody > tr > td {
-            padding: 8px !important;
-            font-size: 12px !important;
-        }
-        .ant-table-thead > tr > th {
-            padding: 8px !important;
-            font-size: 13px !important;
-        }
-        .ant-table-row {
-            height: 40px !important;
-        }
+        .ant-table-tbody > tr > td { padding: 8px !important; font-size: 12px !important; }
+        .ant-table-thead > tr > th { padding: 8px !important; font-size: 12px !important; }
+        .ant-table-row { height: auto !important; }
+        .ant-table-cell { vertical-align: middle !important; }
     `;
+
     const sortedData = allStories?.innerData
         ? [...allStories.innerData].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
         : [];
@@ -152,7 +165,7 @@ const NewRegistrations = () => {
         <div className="registration-container">
             <style>{tableStyles}</style>
             <Title level={4} className="registration-title">
-                Qabulni kutyotkan bemorlar
+                Qabulni kutyotgan bemorlar
             </Title>
             {isLoadingAllStories ? (
                 <Spin size="large" style={{ display: 'block', margin: '50px auto' }} />
@@ -167,9 +180,7 @@ const NewRegistrations = () => {
                     style={{ background: '#fff' }}
                 />
             )}
-
-            {/* Print component - data bor bo'lsa ko'rsatiladi */}
-            <div style={{ display: "none" }}>
+            <div style={{ display: 'none' }}>
                 <ModelCheck data={data} contentRef={contentRef} />
             </div>
         </div>
