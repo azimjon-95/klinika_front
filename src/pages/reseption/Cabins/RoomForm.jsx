@@ -150,7 +150,7 @@ const RoomForm = ({ visible, onClose, mode = "create", roomData = null }) => {
                     autoClose: 3000,
                 });
             }
-            console.log({ adminId: values.doctor, roomId: roomData._id });
+
             await updateRoomId({ adminId: values.doctor, roomId: roomData._id }).unwrap();
             form.resetFields();
             setRoomType("davolanish");

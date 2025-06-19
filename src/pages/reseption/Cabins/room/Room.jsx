@@ -4,6 +4,7 @@ import { FaCheck, FaPlus, FaMinus } from "react-icons/fa";
 import moment from "moment";
 import { GiEntryDoor } from "react-icons/gi";
 import { useNavigate, useParams } from "react-router-dom";
+import { LuClipboardPenLine } from "react-icons/lu";
 import { useReactToPrint } from 'react-to-print';
 import ReceiptPrint from './print/ReceiptPrinter';
 import Loading from '../../../../components/loading/LoadingTik';
@@ -22,6 +23,7 @@ const capitalizeFirstLetter = (str) => str ? `${str.charAt(0).toUpperCase()}${st
 const formatPhone = (phone) => phone ? `+998 ${phone.replace(/\D/g, "").match(/(\d{2})(\d{3})(\d{2})(\d{2})/)?.slice(1).join(" ") || phone}` : 'N/A';
 const formatNumber = (num) => num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") || '0';
 const calculateRoomPayment = (record) => record?.paidDays?.reduce((sum, day) => sum + (day?.price || 0), 0) || 0;
+const location = localStorage.getItem("role") === "doctor";
 
 function Room() {
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
@@ -210,32 +212,63 @@ function Room() {
       dataIndex: "doctorId",
       render: (doctorId) => doctorId ? `${doctorId.firstName || ''} ${doctorId.lastName || ''}, ${doctorId.specialization || ''}`.trim() : "N/A",
     },
-    {
-      title: "Xonadan chiqish",
-      align: "center",
-      width: 140,
-      render: (record) => {
-        const hasUnpaidDays = record.paidDays?.some((day) => !day.isPaid && (day.price || 0) > 0);
-        return (
-          <Tooltip title={hasUnpaidDays ? `Qarz: ${formatNumber(calculateDebt(record))} so'm. Avval to'lang!` : "Bemorni xonadan chiqarish"}>
-            <Button
-              onClick={() => confirmExitRoom(record)}
-              className={`btn ${hasUnpaidDays ? 'btn-warning' : 'btn-danger'}`}
-              disabled={!record.clientMongooseId || isRemoving}
-              danger={!hasUnpaidDays}
-              type={hasUnpaidDays ? "default" : "primary"}
-              size="small"
-              block
-            >
-              <GiEntryDoor style={iconStyle} />
-              {hasUnpaidDays ? " Qarz bor" : " Chiqarish"}
-            </Button>
-          </Tooltip>
-        );
-      },
-    },
+
   ], [confirmExitRoom, iconStyle, isRemoving, calculateDebt]);
 
+
+  const actionsAddColumn = {
+    title: "Xonadan chiqish",
+    align: "center",
+    width: 140,
+    render: (record) => {
+      const hasUnpaidDays = record.paidDays?.some((day) => !day.isPaid && (day.price || 0) > 0);
+      return (
+        <Tooltip title={hasUnpaidDays ? `Qarz: ${formatNumber(calculateDebt(record))} so'm. Avval to'lang!` : "Bemorni xonadan chiqarish"}>
+          <Button
+            onClick={() => confirmExitRoom(record)}
+            className={`btn ${hasUnpaidDays ? 'btn-warning' : 'btn-danger'}`}
+            disabled={!record.clientMongooseId || isRemoving}
+            danger={!hasUnpaidDays}
+            type={hasUnpaidDays ? "default" : "primary"}
+            size="small"
+            block
+          >
+            <GiEntryDoor style={iconStyle} />
+            {hasUnpaidDays ? " Qarz bor" : " Chiqarish"}
+          </Button>
+        </Tooltip>
+      );
+    },
+  }
+  const actionsPotientsSatate = {
+    title: "Bemor xolat?",
+    align: "center",
+    width: 140,
+    render: (record) => {
+      return (
+        <Tooltip title="Ammalar">
+          <Button
+            onClick={() => openPaymentModal(record, 'payment')}
+            className="btn btn-primary"
+            type="primary"
+            size="small"
+            block
+          >
+            <LuClipboardPenLine />
+            Yozing
+          </Button>
+        </Tooltip>
+      );
+    },
+
+  }
+  // Location true bo'lsa, columns ga "Ammalar" ustunini qo'shamiz
+  if (!location) {
+    columns.push(actionsPotientsSatate);
+  }
+  // else {
+  //   columns.push(actionsAddColumn);
+  // }
   const expandedRowRender = useCallback((record) => (
     <div className="my-table-container">
       <div className="my-table-box">
@@ -251,15 +284,18 @@ function Room() {
           );
         })}
       </div>
-      <div className="extro-inp-box">
-        <Button
-          type="primary"
-          onClick={() => openPaymentModal(record, 'payment')}
-          style={{ width: '100%' }}
-        >
-          To'lov qilish ({formatNumber(calculateDebt(record))} so'm)
-        </Button>
-      </div>
+      {
+        !location &&
+        <div className="extro-inp-box">
+          <Button
+            type="primary"
+            onClick={() => openPaymentModal(record, 'payment')}
+            style={{ width: '100%' }}
+          >
+            To'lov qilish ({formatNumber(calculateDebt(record))} so'm)
+          </Button>
+        </div>
+      }
     </div>
   ), [getCardClassName, calculateDebt, openPaymentModal]);
 
@@ -522,3 +558,6 @@ function Room() {
 }
 
 export default Room;
+
+
+

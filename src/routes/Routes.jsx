@@ -10,8 +10,12 @@ import Room from "../pages/reseption/Cabins/room/Room";
 import PatientAddRoomForm from "../pages/reseption/Cabins/patientAddRoom/PatientAddRoomForm";
 import Attendance from "../pages/reseption/attendance/Attendance";
 import ExpenseManager from "../pages/reseption/expense/ExpenseManager";
+// import CalculationLayout from "../components/analizCalculators/CalculationLayout";
+import CalculationLayout from "../pages/doctors/analizCalculators/CalculationLayout";
 import Service from "../pages/reseption/service/Service";
 import NightShiftScheduler from "../pages/reseption/nightShift/NightShiftScheduler";
+import ConsultationView from "../pages/doctors/checkin/ConsultationView";
+import MedicalCalculators from "../pages/doctors/medicalCalculators/Main";
 
 export const routes = [
   {
@@ -47,7 +51,7 @@ export const routes = [
   {
     path: "/history",
     element: <History />,
-    role: ["reception", "director"],
+    role: ["reception", "doctor", "director"],
     private: true,
   },
   {
@@ -57,9 +61,15 @@ export const routes = [
     private: true,
   },
   {
+    path: "/patientsintheward",
+    element: <Cabins />,
+    role: ["doctor"],
+    private: true,
+  },
+  {
     path: "/room/:id",
     element: <Room />,
-    role: ["reception", "director"],
+    role: ["reception", "doctor", "director"],
     private: true,
   },
   {
@@ -92,5 +102,24 @@ export const routes = [
     element: <NightShiftScheduler />,
     role: ["reception", "director"],
     private: true,
-  }
+  },
+  {
+    path: "/consultation/:userId",
+    element: <ConsultationView />,
+    role: ["doctor"],
+    private: true,
+  },
+  {
+    path: "/medical-calculators",
+    element: <MedicalCalculators />,
+    role: ["doctor", "director"],
+    private: true,
+  },
+  {
+    path: "/analis/calculation",
+    element: <CalculationLayout />,
+    role: ["doctor", "director"],
+    private: true,
+  },
+
 ];

@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import { capitalizeFirstLetter } from '../../../hook/CapitalizeFirstLitter';
 import { useAddPotsentsMutation } from '../../../context/clientApi';
 import { useReactToPrint } from "react-to-print";
+import { useDispatch } from 'react-redux';
+import { todaysApi } from '../../../context/todaysApi';
 import { useGetPotsentsLengthQuery } from '../../../context/doctorApi';
 import { notification, Form, Select, Input, Button, Typography, Spin, Radio } from 'antd';
 import ModelCheck from '../../../components/check/modelCheck/ModelCheck';
@@ -16,6 +18,7 @@ const Registration = () => {
     const { data: doctors, isLoading: doctorsLoading, error: doctorsError } = useGetPotsentsLengthQuery();
     const [addPotsents, { isLoading: isAdding }] = useAddPotsentsMutation();
     const [form] = Form.useForm();
+    const dispatch = useDispatch();
     const contentRef = useRef(null);
     const [data, setData] = useState(null);
 
@@ -84,6 +87,8 @@ const Registration = () => {
                     : 0,
                 phone: `+998${values.phone.replace(/\s/g, '')}`,
             };
+
+
             const response = await addPotsents(patientData).unwrap();
 
             if (response?.innerData) {
@@ -93,6 +98,7 @@ const Registration = () => {
                 setTimeout(() => {
                     reactToPrintFn();
                 }, 300);
+                dispatch(todaysApi.util.invalidateTags([{ type: 'Stories', id: 'LIST' }]));
                 form.resetFields();
                 notification.success({
                     message: 'Muvaffaqiyat',
@@ -161,13 +167,14 @@ const Registration = () => {
                             placeholder="Doktorni tanlang"
                             showSearch
                             optionFilterProp="children"
-                            filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                            filterOption={(input, option) =>
+                                option?.children?.toString().toLowerCase().includes(input?.toLowerCase())
+                            }
                         >
                             {doctors?.innerData?.length > 0 ? (
                                 doctors.innerData.map((doctor) => (
                                     <Option key={doctor._id} value={doctor._id}>
-                                        {capitalizeFirstLetter(doctor.specialization)}: {doctor.firstName} {doctor.lastName} [
-                                        {doctor.todayQueue}]
+                                        {capitalizeFirstLetter(doctor.specialization)}: {doctor.firstName} {doctor.lastName} [{doctor.todayQueue}]
                                     </Option>
                                 ))
                             ) : (
@@ -176,6 +183,8 @@ const Registration = () => {
                                 </Option>
                             )}
                         </Select>
+
+
                     )}
                 </Form.Item>
 
@@ -189,8 +198,10 @@ const Registration = () => {
                         placeholder="Xizmatlarni tanlang"
                         disabled={!selectedDoctorId}
                         showSearch
-                        optionFilterProp="children"
-                        filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                        optionFilterProp="label"
+                        filterOption={(input, option) =>
+                            option?.label?.toLowerCase().includes(input?.toLowerCase())
+                        }
                         optionLabelProp="label"
                     >
                         {getDoctorServices().length > 0 ? (
@@ -209,6 +220,7 @@ const Registration = () => {
                             </Option>
                         )}
                     </Select>
+
                 </Form.Item>
 
                 <div className="form-row">
@@ -343,8 +355,8 @@ const Registration = () => {
                     </Form.Item>
                 </div>
 
-                <Form.Item name="description" label="Tavsif">
-                    <TextArea rows={4} placeholder="Tavsifni kiriting" />
+                <Form.Item name="description" label="Bemor shikoyati">
+                    <TextArea rows={4} placeholder="Masalan: Nafas qisishi, yurak urishi tezlashuvi..." />
                 </Form.Item>
 
                 <Form.Item>

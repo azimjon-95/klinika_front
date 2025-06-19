@@ -14,9 +14,10 @@ const authSlice = createSlice({
     initialState,
     reducers: {
         setCredentials: (state, action) => {
-            const { adminFullname, role, token } = action.payload;
+            const { adminFullname, role, token, workerId } = action.payload;
 
             state.adminFullname = adminFullname;
+            state.workerId = workerId;
             state.role = role;
             state.token = token;
             state.isAuthenticated = true;
@@ -25,6 +26,7 @@ const authSlice = createSlice({
             localStorage.setItem("admin_fullname", adminFullname);
             localStorage.setItem("role", role);
             localStorage.setItem("token", token);
+            localStorage.setItem("workerId", workerId);
         },
 
         logout: (state) => {
@@ -42,7 +44,8 @@ const authSlice = createSlice({
                 "doctor",
                 "activeSubPath",
                 "activeMenu",
-                "openMenus"
+                "openMenus",
+                "workerId"
             ];
 
             itemsToRemove.forEach((item) => localStorage.removeItem(item));
@@ -53,11 +56,13 @@ const authSlice = createSlice({
             const token = localStorage.getItem("token");
             const role = localStorage.getItem("role");
             const adminFullname = localStorage.getItem("admin_fullname");
+            const workerId = localStorage.getItem("workerId");
 
             if (token && role) {
                 state.token = token;
                 state.role = role;
                 state.adminFullname = adminFullname;
+                state.workerId = workerId;
                 state.isAuthenticated = true;
             }
         }

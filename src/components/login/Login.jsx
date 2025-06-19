@@ -77,12 +77,14 @@ const Login = () => {
       // Store doctor name for backward compatibility
       const doctorName = `${innerData?.admin.firstName || ''} ${innerData?.admin.lastName || ''}`.trim();
       localStorage.setItem("doctor", doctorName);
+      localStorage.setItem("specialization", innerData?.admin.specialization);
 
       // Dispatch credentials to Redux store
       dispatch(setCredentials({
         adminFullname: doctorName,
         role: innerData?.admin.role,
-        token: innerData?.token
+        token: innerData?.token,
+        workerId: innerData?.admin._id,
       }));
 
       message.success(successMessage || "Muvaffaqiyatli tizimga kirdingiz!");
@@ -178,5 +180,6 @@ const Login = () => {
 };
 
 export default Login;
+
 
 

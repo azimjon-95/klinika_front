@@ -2,23 +2,38 @@ import React, { useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 import "./Layout.css";
-import { menuItems } from "../../utils/SidebarMenu";
 import Sidebar from "../sidebar/Sidebar";
 import Header from "../header/Header";
 
 function Layout() {
   const navigate = useNavigate();
-  const role = localStorage.getItem("role");
+  const permissions = localStorage.getItem("permissions");
   const location = useLocation();
 
   useEffect(() => {
-    if (!role || !menuItems[role]) {
+    if (!permissions) {
       navigate("/login");
     }
-  }, [role, navigate]);
+  }, [permissions, navigate]);
 
-  const isDirectorPath = location.pathname === '/director' || "/expense";
+  let backgroundStyle = "";
+  let paddingStyle = "";
 
+  if (
+    location.pathname === "/director"
+  ) {
+    backgroundStyle = "linear-gradient(135deg, #eff6ff, #e0e7ff)";
+    paddingStyle = "5px";
+  } else if (location.pathname === "/history") {
+    backgroundStyle = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    paddingStyle = "5px";
+  } else if (location.pathname === "/medical-calculators") {
+    backgroundStyle = "inear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    paddingStyle = "0px";
+  } else {
+    backgroundStyle = "#fff";
+    paddingStyle = "15px";
+  }
   return (
     <div className="layout">
 
@@ -29,10 +44,8 @@ function Layout() {
       <div className="layout_right">
         <Header />
         <main style={{
-          background: isDirectorPath
-            ? 'linear-gradient(135deg, #eff6ff, #e0e7ff)'
-            : '#fff',
-          padding: isDirectorPath ? "5px 5px 5px 5px" : "15px"
+          background: backgroundStyle,
+          padding: paddingStyle,
         }} className="main-content">
           <Outlet />
         </main>

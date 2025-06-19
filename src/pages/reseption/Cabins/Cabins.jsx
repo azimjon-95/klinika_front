@@ -7,7 +7,7 @@ import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { TbElevator } from "react-icons/tb";
 import { message, Button, Select, Table, Tabs } from "antd";
 import { PiLockKeyFill } from "react-icons/pi";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Door from "../../../assets/door.png";
 import { NumberFormat } from "../../../hook/NumberFormat";
 import "./style.css";
@@ -35,7 +35,10 @@ const Cabins = () => {
   const [deleteModal, setDeleteModal] = useState({ visible: false, id: null, roomNumber: null, capacity: [] });
   const modalRef = useRef(null);
   const [activeTab, setActiveTab] = useState("1");
+  const [showAllRooms, setShowAllRooms] = useState(false); // Yangi state qo'shildi
   const kassir = localStorage.getItem("admin") || "admin";
+  const workerId = localStorage.getItem("workerId");
+  const location = useLocation().pathname === "/patientsintheward";
 
   const { data: rooms, isLoading, error: fetchError } = useGetRoomsQuery();
   const [deleteRoom, { isLoading: isDeleting }] = useDeleteRoomMutation();
@@ -53,7 +56,6 @@ const Cabins = () => {
   };
 
   const handleCleanStatusToggle = async (roomId, currentStatus, index, record) => {
-    console.log(currentStatus);
     try {
       // Update server
       await updateRoomCleanStatus({
@@ -333,93 +335,6 @@ const Cabins = () => {
         </Button>
       ),
     },
-    {
-      title: "Bemor qo'shish",
-      key: "openUpdate",
-      render: (record) => {
-        const isFull = record.capacity.length === record.usersNumber;
-        const isLocked = record.closeRoom;
-        const isDisabled = kassir === "buhgalter";
-
-        if (isLocked) {
-          return (
-            <Button
-              disabled={isDisabled}
-              type="primary"
-              danger
-              style={{ padding: 0, fontSize: 18, width: 45 }}
-              onClick={() => toggleRoomStatus(record._id, record.closeRoom)}
-            >
-              <PiLockKeyFill />
-            </Button>
-          );
-        }
-
-        if (isFull) {
-          return (
-            <Button
-              disabled
-              type="primary"
-              style={{ padding: 0, fontSize: 18, width: 45 }}
-            >
-              <FiUserPlus style={{ fontSize: "22px" }} />
-            </Button>
-          );
-        }
-
-        return (
-          <Link
-            to={isDisabled ? "" : `/addpatient/${record._id}`}
-            style={{ padding: 0, fontSize: 18, width: 45 }}
-          >
-            <Button disabled={isDisabled} type="primary">
-              <FiUserPlus />
-            </Button>
-          </Link>
-        );
-      },
-    },
-    {
-      title: "Ammalar", // New Update Column
-      key: "update",
-      render: (_, record) => (
-        <div style={{ display: "flex", gap: "5px" }}>
-          <Button
-            type="primary"
-            style={{
-              display: "flex",
-              padding: 0,
-              justifyContent: "center",
-              alignItems: "center",
-              fontSize: 18,
-              width: 45,
-              backgroundColor: "#1890ff",
-            }}
-            onClick={() => handleUpdateClick(record)}
-            disabled={kassir === "buhgalter"}
-          >
-            <EditOutlined />
-          </Button>
-
-          <Button
-            type="primary"
-            danger
-            style={{
-              display: "flex",
-              padding: 0,
-              justifyContent: "center",
-              alignItems: "center",
-              fontSize: 18,
-              width: 45,
-            }}
-            onClick={() => showDeleteConfirm(record._id, record.roomNumber, record.capacity)}
-            disabled={kassir === "buhgalter"}
-          >
-            <DeleteOutlined />
-          </Button>
-        </div>
-      ),
-    },
   ];
 
   const column = [
@@ -506,48 +421,176 @@ const Cabins = () => {
         </div>
       ),
     },
-    {
-      title: "Ammalar", // New Update Column
-      key: "update",
-      render: (_, record) => (
-        <div style={{ display: "flex", gap: "5px" }}>
-          <Button
-            type="primary"
-            style={{
-              display: "flex",
-              padding: 0,
-              justifyContent: "center",
-              alignItems: "center",
-              fontSize: 18,
-              width: 45,
-              backgroundColor: "#1890ff",
-            }}
-            onClick={() => handleUpdateClick(record)}
-            disabled={kassir === "buhgalter"}
-          >
-            <EditOutlined />
-          </Button>
 
+  ];
+
+  const actionsAddColumn = {
+    title: "Bemor qo'shish",
+    key: "openUpdate",
+    render: (record) => {
+      const isFull = record.capacity.length === record.usersNumber;
+      const isLocked = record.closeRoom;
+      const isDisabled = kassir === "buhgalter";
+
+      if (isLocked) {
+        return (
           <Button
+            disabled={isDisabled}
             type="primary"
             danger
-            style={{
-              display: "flex",
-              padding: 0,
-              justifyContent: "center",
-              alignItems: "center",
-              fontSize: 18,
-              width: 45,
-            }}
-            onClick={() => showDeleteConfirm(record._id, record.roomNumber, record.capacity)}
-            disabled={kassir === "buhgalter"}
+            style={{ padding: 0, fontSize: 18, width: 45 }}
+            onClick={() => toggleRoomStatus(record._id, record.closeRoom)}
           >
-            <DeleteOutlined />
+            <PiLockKeyFill />
           </Button>
-        </div>
-      ),
+        );
+      }
+
+      if (isFull) {
+        return (
+          <Button
+            disabled
+            type="primary"
+            style={{ padding: 0, fontSize: 18, width: 45 }}
+          >
+            <FiUserPlus style={{ fontSize: "22px" }} />
+          </Button>
+        );
+      }
+
+      return (
+        <Link
+          to={isDisabled ? "" : `/addpatient/${record._id}`}
+          style={{ padding: 0, fontSize: 18, width: 45 }}
+        >
+          <Button disabled={isDisabled} type="primary">
+            <FiUserPlus />
+          </Button>
+        </Link>
+      );
     },
-  ];
+  }
+  const actionsColumn = {
+    title: "Ammalar",
+    key: "update",
+    render: (_, record) => (
+      <div style={{ display: "flex", gap: "5px" }}>
+        <Button
+          type="primary"
+          style={{
+            display: "flex",
+            padding: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            fontSize: 18,
+            width: 45,
+            backgroundColor: "#1890ff",
+          }}
+          onClick={() => handleUpdateClick(record)}
+          disabled={kassir === "buhgalter"}
+        >
+          <EditOutlined />
+        </Button>
+
+        <Button
+          type="primary"
+          danger
+          style={{
+            display: "flex",
+            padding: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            fontSize: 18,
+            width: 45,
+          }}
+          onClick={() => showDeleteConfirm(record._id, record.roomNumber, record.capacity)}
+          disabled={kassir === "buhgalter"}
+        >
+          <DeleteOutlined />
+        </Button>
+      </div>
+    ),
+  };
+  const actionsRoomColumn = {
+    title: "Ammalar", // New Update Column
+    key: "update",
+    render: (_, record) => (
+      <div style={{ display: "flex", gap: "5px" }}>
+        <Button
+          type="primary"
+          style={{
+            display: "flex",
+            padding: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            fontSize: 18,
+            width: 45,
+            backgroundColor: "#1890ff",
+          }}
+          onClick={() => handleUpdateClick(record)}
+          disabled={kassir === "buhgalter"}
+        >
+          <EditOutlined />
+        </Button>
+
+        <Button
+          type="primary"
+          danger
+          style={{
+            display: "flex",
+            padding: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            fontSize: 18,
+            width: 45,
+          }}
+          onClick={() => showDeleteConfirm(record._id, record.roomNumber, record.capacity)}
+          disabled={kassir === "buhgalter"}
+        >
+          <DeleteOutlined />
+        </Button>
+      </div>
+    ),
+  }
+
+  // Location true bo'lsa, columns ga "Ammalar" ustunini qo'shamiz
+  if (!location) {
+    columns.push(actionsAddColumn);
+    columns.push(actionsColumn);
+    column.push(actionsRoomColumn);
+  }
+
+  // selectedData uchun tuzatish - har doim array qaytarish
+  let selectedData = [];
+  if (location) {
+    selectedData = otherRooms?.filter((item) => item.doctorId?._id === workerId);
+  } else {
+    selectedData = otherRooms;
+  }
+
+  const filteredRooms = davolanishRooms?.filter((room) =>
+    room.capacity?.some(
+      (cap) => cap?.doctorId?._id === workerId
+    )
+  );
+
+  // roomsData ni yangi logika asosida belgilash
+  let roomsData = [];
+  if (location) {
+    // Location true bo'lsa
+    if (showAllRooms) {
+      roomsData = davolanishRooms; // Barcha xonalar
+    } else {
+      roomsData = filteredRooms; // Faqat shifokor xonalari (default)
+    }
+  } else {
+    roomsData = davolanishRooms; // Location false bo'lsa barcha davolanish xonalari
+  }
+
+  // Tugmani bosganda toggle qilish funksiyasi
+  const handleToggleFilter = () => {
+    setShowAllRooms(!showAllRooms);
+  };
 
   return (
     <div style={{ position: "relative", width: "100%" }}>
@@ -562,32 +605,48 @@ const Cabins = () => {
               gap: "16px",
             }}
           >
-            {activeTab === "1" && (
-              <Select
-                defaultValue="all"
-                style={{ width: 150 }}
-                onChange={(value) => setCategoryFilter(value)}
+            {!location &&
+              <>
+                {activeTab === "1" && (
+                  <Select
+                    defaultValue="all"
+                    style={{ width: 150 }}
+                    onChange={(value) => setCategoryFilter(value)}
+                  >
+                    <Option value="all">Barcha kategoriyalar</Option>
+                    <Option value="free">Oddiy</Option>
+                    <Option value="luxury">Lyuks</Option>
+                    <Option value="pollux">Pol lyuks</Option>
+                  </Select>
+                )}
+                {activeTab === "1" && (
+                  <Select
+                    defaultValue="all"
+                    style={{ width: 150 }}
+                    onChange={(value) => setOccupancyFilter(value)}
+                  >
+                    <Option value="all">Barcha xonalar</Option>
+                    <Option value="available">Joy borlar</Option>
+                    <Option value="full">Joy qolmagan</Option>
+                  </Select>
+                )}
+              </>
+            }
+            {/* Location true bo'lsa filter tugmasini ko'rsatish */}
+            {location && activeTab === "1" && (
+              <Button
+                type={showAllRooms ? "primary" : "default"}
+                onClick={handleToggleFilter}
               >
-                <Option value="all">Barcha kategoriyalar</Option>
-                <Option value="free">Oddiy</Option>
-                <Option value="luxury">Lyuks</Option>
-                <Option value="pollux">Pol lyuks</Option>
-              </Select>
+                {showAllRooms ? "Mening xonalarim" : "Barcha xonalar"}
+              </Button>
             )}
-            {activeTab === "1" && (
-              <Select
-                defaultValue="all"
-                style={{ width: 150 }}
-                onChange={(value) => setOccupancyFilter(value)}
-              >
-                <Option value="all">Barcha xonalar</Option>
-                <Option value="available">Joy borlar</Option>
-                <Option value="full">Joy qolmagan</Option>
-              </Select>
-            )}
-            <Button type="primary" onClick={handleRightClick}>
-              Xona Qo'shish
-            </Button>
+            {
+              !location &&
+              <Button type="primary" onClick={handleRightClick}>
+                Xona Qo'shish
+              </Button>
+            }
           </div>
         }
         defaultActiveKey="1"
@@ -600,10 +659,10 @@ const Cabins = () => {
             bordered
             size="small"
             columns={columns}
-            dataSource={davolanishRooms}
+            dataSource={roomsData}
           />
         </TabPane>
-        <TabPane tab="Xonalar va Tozalanish Kerak Bo'lgan Zonalar" key="2">
+        <TabPane tab={location ? `${selectedData[0]?.roomNumber + "-Xona"}` : "Xonalar va Tozalanish Kerak Bo'lgan Zonalar"} key="2">
           <Table
             rowKey="_id"
             pagination={false}
@@ -611,7 +670,7 @@ const Cabins = () => {
             bordered
             size="small"
             columns={column}
-            dataSource={otherRooms}
+            dataSource={selectedData}
           />
         </TabPane>
       </Tabs>
@@ -667,12 +726,3 @@ const Cabins = () => {
 };
 
 export default Cabins;
-
-
-
-
-
-
-
-
-

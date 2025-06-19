@@ -35,7 +35,15 @@ export const potsentApi = api.injectEndpoints({
                 method: 'GET',
             }),
         }),
-
+        // /client/updateBmi/:id
+        updateBmiPotsents: builder.mutation({
+            query: ({ id, data }) => ({
+                url: `/client/updateBmi/${id}`,
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: ['Potsents'],
+        }),
     }),
 });
 
@@ -45,4 +53,5 @@ export const {
     useUpdatePotsentsMutation,
     useDeletePotsentsMutation,
     useGetByIdPotsentsMutation,
+    useUpdateBmiPotsentsMutation,
 } = potsentApi;

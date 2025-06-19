@@ -29,9 +29,9 @@ export const doctorApi = api.injectEndpoints({
             }),
             invalidatesTags: ['Workers'],
         }),
-        getByIdWorker: builder.mutation({
+        getDoctorById: builder.query({
             query: (id) => ({
-                url: `/admin/${id}`,
+                url: `/admines/${id}`,
                 method: 'GET',
             }),
         }),
@@ -59,6 +59,12 @@ export const doctorApi = api.injectEndpoints({
             }),
             invalidatesTags: ['Workers'], // Invalidate cache for admins to refresh data
         }),
+
+        getDoctors: builder.query({
+            query: (id) => `/doctors/${id}`,
+            method: 'GET',
+            providesTags: ['Workers'],
+        }),
     }),
 });
 
@@ -67,8 +73,9 @@ export const {
     useAddWorkerMutation,
     useUpdateWorkerMutation,
     useDeleteWorkerMutation,
-    useGetByIdWorkerMutation,
     useGetPotsentsLengthQuery,
     useUpdateServicesIdMutation,
-    useUpdateRoomIdMutation
+    useUpdateRoomIdMutation,
+    useGetDoctorByIdQuery,
+    useGetDoctorsQuery
 } = doctorApi;

@@ -192,7 +192,7 @@ function Service() {
     const [editingService, setEditingService] = useState(null);
     const [expandedRows, setExpandedRows] = useState({});
     const scrollContainerRef = useRef(null);
-    const [updateServicesId, { isLoading: isUpdatingWorker }] = useUpdateServicesIdMutation();
+    const [updateServicesId] = useUpdateServicesIdMutation();
 
     // RTK Query hooks
     const { data: services = { innerData: [] }, isLoading, error } =
@@ -292,8 +292,8 @@ function Service() {
                 });
             } else {
                 // Create new service
-                await createService(serviceData).unwrap();
-                serviceId = editingService._id;
+                const res = await createService(serviceData).unwrap();
+                serviceId = res.innerData._id;
                 toast.success("Yangi xizmat muvaffaqiyatli qo'shildi!", {
                     position: "top-right",
                     autoClose: 2000,
@@ -303,8 +303,6 @@ function Service() {
             // Update worker with the serviceId
             const worker = workers.innerData.find((w) => w._id === formData.doctorId);
             if (worker) {
-
-
                 await updateServicesId({
                     adminId: worker._id,
                     servicesId: serviceId,
@@ -538,7 +536,7 @@ function Service() {
                             Error: {error.message}
                         </div>
                     ) : (
-                        <table className="table">
+                        <table className="tableservice">
                             <thead>
                                 <tr>
                                     <th>
@@ -574,7 +572,7 @@ function Service() {
                                         <React.Fragment key={service._id}>
                                             <tr
                                                 className={
-                                                    serviceIndex % 2 === 0 ? "even-row" : "odd-row"
+                                                    serviceIndex % 2 === 0 ? "even-rowservice" : "odd-row"
                                                 }
                                             >
                                                 <td>
@@ -604,7 +602,7 @@ function Service() {
                                                     </button>
                                                 </td>
                                                 <td>
-                                                    <div className="action-buttons">
+                                                    <div className="service-buttons">
                                                         <button
                                                             onClick={() => handleEdit(service)}
                                                             className="edit-button"
@@ -668,12 +666,12 @@ function Service() {
                                                                                 key={itemIndex}
                                                                                 className={
                                                                                     itemIndex % 2 === 0
-                                                                                        ? "even-row"
+                                                                                        ? "even-rowservice"
                                                                                         : "odd-row"
                                                                                 }
                                                                             >
                                                                                 <td>
-                                                                                    <div className="expanded-table-cell-content">
+                                                                                    <div className="expandedtable-cell-content">
                                                                                         <MdHealthAndSafety
                                                                                             style={{ color: "#10b981" }}
                                                                                         />

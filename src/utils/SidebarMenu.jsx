@@ -7,8 +7,13 @@ import {
   FaNotesMedical,
   FaHistory,
   FaBed,
-  FaCalendarCheck, FaMoneyBillWave
+  FaCalendarCheck,
+  FaMoneyBillWave,
 } from "react-icons/fa";
+import { FaCalculator } from "react-icons/fa6";
+import { FaHeartbeat } from "react-icons/fa";
+import { BiTestTube } from "react-icons/bi";
+// yoki kerak bo‘lsa boshqa iconlar ham:
 import {
   Moon
 } from 'lucide-react';
@@ -21,6 +26,26 @@ export const menuItems = {
       icon: <FaStethoscope size={20} />,
       path: "/doctor",
       label: "Shifokor Qabuli",
+    },
+    {
+      icon: <FaBed size={20} />, // Changed to FaBed for treatment/cabins
+      path: "/patientsintheward",
+      label: "Davolanish",
+    },
+    {
+      icon: <FaHistory size={20} />, // Changed to FaHistory for history
+      path: "/history",
+      label: "Tarix",
+    },
+    {
+      path: "/medical-calculators",
+      label: "Kardio & Nevrologiya Kalkulyatorlari",
+      icon: <FaHeartbeat size={20} />
+    },
+    {
+      path: "/analis/calculation",
+      label: "Laboratoriya Kalkulyatorlari",
+      icon: <BiTestTube size={20} />
     },
   ],
   reception: [
@@ -58,6 +83,11 @@ export const menuItems = {
       icon: <Moon size={20} />, // Changed to FaCalendarCheck for attendance
       path: "/nightShift",
       label: "Smena Boshqaruvi",
+    },
+    {
+      icon: <FaHistory size={20} />, // Changed to FaHistory for history
+      path: "/history",
+      label: "Tarix",
     },
   ],
   director: [
@@ -118,15 +148,14 @@ export const menuItems = {
       ],
     },
     {
-      icon: <FaUserMd size={20} />,
-      label: "Shifokorlar",
-      children: [
-        {
-          icon: <FaStethoscope size={20} />,
-          path: "/doctor",
-          label: "Qabul sahifasi",
-        },
-      ],
+      path: "/medical-calculators",
+      label: "Kardio & Nevrologiya Kalkulyatorlari",
+      icon: <FaHeartbeat size={20} />
     },
+    {
+      path: "/analis/calculation",
+      label: "Laboratoriya Kalkulyatorlari",
+      icon: <BiTestTube size={20} />
+    }
   ],
 };
