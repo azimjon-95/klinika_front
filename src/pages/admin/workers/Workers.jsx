@@ -551,7 +551,21 @@ const Workers = () => {
                 <Input type="number" placeholder="Oylik maoshni kiriting" min="0" />
               </Form.Item>
             )}
+
           </div>
+          <Form.Item
+            label="NFS raqam"
+            name="idCardNumber"
+            rules={[
+              {
+                validator: async (_, value) =>
+                  (Number(value) >= 0 && !isNaN(value)) || 'Oylik maosh 0 dan katta son bo‘lishi kerak',
+              },
+            ]}
+            className="form-item"
+          >
+            <Input type="number" placeholder="NFS kodi" min="0" />
+          </Form.Item>
           <div className="form-row">
             {updateForm.getFieldValue('salary_type') === 'percentage' && (
               <Form.Item
