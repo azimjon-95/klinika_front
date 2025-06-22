@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 import "./Layout.css";
 import Sidebar from "../sidebar/Sidebar";
@@ -10,18 +10,16 @@ function Layout() {
   const permissions = localStorage.getItem("permissions");
   const location = useLocation();
 
-  useEffect(() => {
-    if (!permissions) {
-      navigate("/login");
-    }
-  }, [permissions, navigate]);
+  // useEffect(() => {
+  //   if (!permissions) {
+  //     navigate("/login");
+  //   }
+  // }, [permissions, navigate]);
 
   let backgroundStyle = "";
   let paddingStyle = "";
 
-  if (
-    location.pathname === "/director"
-  ) {
+  if (location.pathname === "/director") {
     backgroundStyle = "linear-gradient(135deg, #eff6ff, #e0e7ff)";
     paddingStyle = "5px";
   } else if (location.pathname === "/history") {
@@ -36,17 +34,19 @@ function Layout() {
   }
   return (
     <div className="layout">
-
       <div className="layout_left">
         <Sidebar />
       </div>
 
       <div className="layout_right">
         <Header />
-        <main style={{
-          background: backgroundStyle,
-          padding: paddingStyle,
-        }} className="main-content">
+        <main
+          style={{
+            background: backgroundStyle,
+            padding: paddingStyle,
+          }}
+          className="main-content"
+        >
           <Outlet />
         </main>
       </div>

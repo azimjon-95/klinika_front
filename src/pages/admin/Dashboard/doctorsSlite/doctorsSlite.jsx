@@ -6,7 +6,7 @@ import { TbFilePercent } from "react-icons/tb";
 import { GiTakeMyMoney } from "react-icons/gi";
 import { Link, useNavigate } from "react-router-dom";
 import "./style.css"; // Importing styles for the component
-
+import { FaBed } from "react-icons/fa";
 const NumberFormat = (value) => {
   if (!value) return "0";
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -17,7 +17,7 @@ function DoctorsSlite({ data, isLoading }) {
 
   return (
     <div className="carousel">
-      {!isLoading  ? (
+      {!isLoading ? (
         data?.map((value, inx) => (
           <Link
             // to={`/doctorSinglePage/${value.idNumber}/${value.specialization}`}
@@ -39,7 +39,10 @@ function DoctorsSlite({ data, isLoading }) {
               <b>{value?.specialization}</b>
             </div>
             <div className="allInfoTotal">
-              <div className="sDay">{value?.periodCount}</div>
+              <div className="CountDay-M">
+                <FaBed />
+                {value?.periodCount}
+              </div>
               <div className="CountDay-M">
                 <LiaMoneyBillWaveSolid /> {NumberFormat(value?.totalPrice)}
               </div>
