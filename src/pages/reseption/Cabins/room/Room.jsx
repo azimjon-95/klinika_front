@@ -212,63 +212,34 @@ function Room() {
       dataIndex: "doctorId",
       render: (doctorId) => doctorId ? `${doctorId.firstName || ''} ${doctorId.lastName || ''}, ${doctorId.specialization || ''}`.trim() : "N/A",
     },
-
+    {
+      title: "Xonadan chiqish",
+      align: "center",
+      width: 140,
+      render: (record) => {
+        const hasUnpaidDays = record.paidDays?.some((day) => !day.isPaid && (day.price || 0) > 0);
+        return (
+          <Tooltip title={hasUnpaidDays ? `Qarz: ${formatNumber(calculateDebt(record))} so'm. Avval to'lang!` : "Bemorni xonadan chiqarish"}>
+            <Button
+              onClick={() => confirmExitRoom(record)}
+              className={`btn ${hasUnpaidDays ? 'btn-warning' : 'btn-danger'}`}
+              disabled={!record.clientMongooseId || isRemoving}
+              danger={!hasUnpaidDays}
+              type={hasUnpaidDays ? "default" : "primary"}
+              size="small"
+              block
+            >
+              <GiEntryDoor style={iconStyle} />
+              {hasUnpaidDays ? " Qarz bor" : " Chiqarish"}
+            </Button>
+          </Tooltip>
+        );
+      },
+    }
   ], [confirmExitRoom, iconStyle, isRemoving, calculateDebt]);
 
 
-  const actionsAddColumn = {
-    title: "Xonadan chiqish",
-    align: "center",
-    width: 140,
-    render: (record) => {
-      const hasUnpaidDays = record.paidDays?.some((day) => !day.isPaid && (day.price || 0) > 0);
-      return (
-        <Tooltip title={hasUnpaidDays ? `Qarz: ${formatNumber(calculateDebt(record))} so'm. Avval to'lang!` : "Bemorni xonadan chiqarish"}>
-          <Button
-            onClick={() => confirmExitRoom(record)}
-            className={`btn ${hasUnpaidDays ? 'btn-warning' : 'btn-danger'}`}
-            disabled={!record.clientMongooseId || isRemoving}
-            danger={!hasUnpaidDays}
-            type={hasUnpaidDays ? "default" : "primary"}
-            size="small"
-            block
-          >
-            <GiEntryDoor style={iconStyle} />
-            {hasUnpaidDays ? " Qarz bor" : " Chiqarish"}
-          </Button>
-        </Tooltip>
-      );
-    },
-  }
-  const actionsPotientsSatate = {
-    title: "Bemor xolat?",
-    align: "center",
-    width: 140,
-    render: (record) => {
-      return (
-        <Tooltip title="Ammalar">
-          <Button
-            onClick={() => openPaymentModal(record, 'payment')}
-            className="btn btn-primary"
-            type="primary"
-            size="small"
-            block
-          >
-            <LuClipboardPenLine />
-            Yozing
-          </Button>
-        </Tooltip>
-      );
-    },
 
-  }
-  // Location true bo'lsa, columns ga "Ammalar" ustunini qo'shamiz
-  if (!location) {
-    columns.push(actionsPotientsSatate);
-  }
-  // else {
-  //   columns.push(actionsAddColumn);
-  // }
   const expandedRowRender = useCallback((record) => (
     <div className="my-table-container">
       <div className="my-table-box">
