@@ -1,4 +1,3 @@
-// BioKimyovi qon taxlil
 export const biokimyoviyTaxliliData = [
   {
     label: "Biokimyoviy Tahlil",
