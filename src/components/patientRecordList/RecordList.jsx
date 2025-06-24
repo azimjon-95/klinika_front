@@ -1,5 +1,5 @@
 import React from "react";
-import { useGetClinicsQuery } from "../../context/ClinicApi";
+import { useGetClinicsQuery } from "../../context/clinicApi";
 import { useGetDoctorByIdQuery } from "../../context/doctorApi";
 import { PhoneNumberFormat } from "../../hook/NumberFormat";
 import Logo from "./Logo.jpg";
@@ -33,10 +33,10 @@ function RecordList({ componentRef, records, selectedPatient, data }) {
   const recommendations = Array.isArray(patcent?.retsept?.recommendations)
     ? patcent?.retsept?.recommendations
     : typeof patcent?.retsept?.recommendations === "string"
-    ? patcent?.retsept?.recommendations
+      ? patcent?.retsept?.recommendations
         .split("\n")
         .filter((item) => item.trim())
-    : [];
+      : [];
 
   // Handle prescriptions: Split by number or newline for proper formatting
   const prescriptions = data?.prescription
@@ -172,9 +172,8 @@ function RecordList({ componentRef, records, selectedPatient, data }) {
                 shifokori
               </p>
               <p className="doctor-name-prominent">
-                {`${doctor?.innerData?.firstName || ""} ${
-                  doctor?.innerData?.lastName || ""
-                }`.trim() || "N/A"}
+                {`${doctor?.innerData?.firstName || ""} ${doctor?.innerData?.lastName || ""
+                  }`.trim() || "N/A"}
               </p>
               <p className="doctor-contact-info">
                 📱 +998 {PhoneNumberFormat(doctor?.innerData?.phone) || "N/A"}
