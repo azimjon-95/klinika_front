@@ -39,7 +39,7 @@ import { specializationOptions } from "../../../utils/specializationOptions";
 import { capitalizeFirstLetter } from "../../../hook/CapitalizeFirstLitter";
 import { toast, ToastContainer } from "react-toastify"; // Import react-toastify
 import "react-toastify/dist/ReactToastify.css"; // Import toastify CSS
-import "./Service.css";
+import "./service.css";
 
 // Memoized Service Item component
 const ServiceItem = memo(
