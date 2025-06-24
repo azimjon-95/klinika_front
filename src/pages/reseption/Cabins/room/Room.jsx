@@ -238,7 +238,10 @@ function Room() {
     }
   ], [confirmExitRoom, iconStyle, isRemoving, calculateDebt]);
 
-
+  {/* Modal Body */ }
+  if (true) {
+    console.log("ok");
+  }
 
   const expandedRowRender = useCallback((record) => (
     <div className="my-table-container">
@@ -375,6 +378,7 @@ function Room() {
                 ×
               </button>
             </div>
+
 
             {/* Modal Body */}
             <div className="medical-modal-body">
